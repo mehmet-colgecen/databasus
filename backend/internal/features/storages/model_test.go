@@ -414,3 +414,65 @@ func validateEnvVariables(t *testing.T) {
 	assert.NotEmpty(t, env.TestAzuriteBlobPort, "TEST_AZURITE_BLOB_PORT is empty")
 	assert.NotEmpty(t, env.TestNASPort, "TEST_NAS_PORT is empty")
 }
+
+func Test_StorageUpdate_WhenExistingStorageHasNilS3_AssignsIncomingS3(t *testing.T) {
+	storageID := uuid.New()
+
+	existing := &Storage{
+		ID:        storageID,
+		Type:      StorageTypeS3,
+		Name:      "old name",
+		S3Storage: nil,
+	}
+
+	incoming := &Storage{
+		ID:   storageID,
+		Type: StorageTypeS3,
+		Name: "new name",
+		S3Storage: &s3_storage.S3Storage{
+			StorageID:   storageID,
+			S3Bucket:    "my-bucket",
+			S3Region:    "us-east-1",
+			S3AccessKey: "access",
+			S3SecretKey: "secret",
+		},
+	}
+
+	existing.Update(incoming)
+
+	assert.Equal(t, "new name", existing.Name)
+	assert.NotNil(t, existing.S3Storage)
+	assert.Equal(t, "my-bucket", existing.S3Storage.S3Bucket)
+	assert.Equal(t, "us-east-1", existing.S3Storage.S3Region)
+}
+
+func Test_StorageUpdate_WhenExistingS3IsNil_ValidateDoesNotPanic(t *testing.T) {
+	storageID := uuid.New()
+	encryptor := encryption.GetFieldEncryptor()
+
+	existing := &Storage{
+		ID:        storageID,
+		Type:      StorageTypeS3,
+		Name:      "test",
+		S3Storage: nil,
+	}
+
+	incoming := &Storage{
+		ID:   storageID,
+		Type: StorageTypeS3,
+		Name: "test",
+		S3Storage: &s3_storage.S3Storage{
+			StorageID:   storageID,
+			S3Bucket:    "my-bucket",
+			S3Region:    "us-east-1",
+			S3AccessKey: "access",
+			S3SecretKey: "secret",
+		},
+	}
+
+	existing.Update(incoming)
+
+	assert.NotPanics(t, func() {
+		_ = existing.Validate(encryptor)
+	})
+}

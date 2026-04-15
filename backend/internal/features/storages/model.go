@@ -112,34 +112,50 @@ func (s *Storage) Update(incoming *Storage) {
 	case StorageTypeLocal:
 		if s.LocalStorage != nil && incoming.LocalStorage != nil {
 			s.LocalStorage.Update(incoming.LocalStorage)
+		} else if incoming.LocalStorage != nil {
+			s.LocalStorage = incoming.LocalStorage
 		}
 	case StorageTypeS3:
 		if s.S3Storage != nil && incoming.S3Storage != nil {
 			s.S3Storage.Update(incoming.S3Storage)
+		} else if incoming.S3Storage != nil {
+			s.S3Storage = incoming.S3Storage
 		}
 	case StorageTypeGoogleDrive:
 		if s.GoogleDriveStorage != nil && incoming.GoogleDriveStorage != nil {
 			s.GoogleDriveStorage.Update(incoming.GoogleDriveStorage)
+		} else if incoming.GoogleDriveStorage != nil {
+			s.GoogleDriveStorage = incoming.GoogleDriveStorage
 		}
 	case StorageTypeNAS:
 		if s.NASStorage != nil && incoming.NASStorage != nil {
 			s.NASStorage.Update(incoming.NASStorage)
+		} else if incoming.NASStorage != nil {
+			s.NASStorage = incoming.NASStorage
 		}
 	case StorageTypeAzureBlob:
 		if s.AzureBlobStorage != nil && incoming.AzureBlobStorage != nil {
 			s.AzureBlobStorage.Update(incoming.AzureBlobStorage)
+		} else if incoming.AzureBlobStorage != nil {
+			s.AzureBlobStorage = incoming.AzureBlobStorage
 		}
 	case StorageTypeFTP:
 		if s.FTPStorage != nil && incoming.FTPStorage != nil {
 			s.FTPStorage.Update(incoming.FTPStorage)
+		} else if incoming.FTPStorage != nil {
+			s.FTPStorage = incoming.FTPStorage
 		}
 	case StorageTypeSFTP:
 		if s.SFTPStorage != nil && incoming.SFTPStorage != nil {
 			s.SFTPStorage.Update(incoming.SFTPStorage)
+		} else if incoming.SFTPStorage != nil {
+			s.SFTPStorage = incoming.SFTPStorage
 		}
 	case StorageTypeRclone:
 		if s.RcloneStorage != nil && incoming.RcloneStorage != nil {
 			s.RcloneStorage.Update(incoming.RcloneStorage)
+		} else if incoming.RcloneStorage != nil {
+			s.RcloneStorage = incoming.RcloneStorage
 		}
 	}
 }
