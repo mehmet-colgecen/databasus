@@ -54,3 +54,9 @@ Booleans take an `is` / `can` / `has` / `should` prefix (`isAllowed`, `canAccess
 After each change run linting and formatting depending on folder you are working it.
 - backend and agent has `make lint` commands
 - frontend has `pnpm lint` and `pnpm format` commands
+
+### No "how it was" comments, no unrequested backward compatibility
+
+Don't write comments that explain previous behavior ("used to be X", "was renamed from Y", "kept for legacy callers"). Code shows the current state; history lives in git.
+
+Don't preserve backward compatibility unless the user asks for it. No deprecation shims, no aliases, no fallbacks for the old shape. When planning a change that would break existing callers, schemas, configs, or APIs, call out the break explicitly in the plan. If the user approves it, delete the old code outright — do not leave a transition layer behind.

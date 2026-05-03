@@ -180,16 +180,11 @@ COPY frontend/cloud-root-content.html /app/cloud-root-content.html
 # at GET /api/v1/system/agent?arch=amd64|arm64
 COPY --from=agent-build /agent-binaries ./agent-binaries
 
-# Copy .env file to / (with fallback to .env.production.example).
-# The backend resolves .env relative to the parent of its working directory:
-# in dev, cwd is backend/ and .env sits at the repo root (parent of backend/).
-# In production, WORKDIR is /app, so .env must live at / to match.
-COPY backend/.env* /
-RUN if [ ! -f /.env ]; then \
-  if [ -f /.env.production.example ]; then \
-  cp /.env.production.example /.env; \
-  fi; \
-  fi
+# Bake .env.example as /.env so the binary has defaults when no env file is
+# mounted. The backend looks for .env at the parent of cwd (= /app), i.e. /.
+# Real env vars (-e, compose, k8s) take precedence — godotenv.Load does not
+# overwrite already-set variables.
+COPY .env.example /.env
 
 # Create startup script
 COPY <<EOF /app/start.sh
