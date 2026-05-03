@@ -7,8 +7,8 @@ WORKDIR /frontend
 ARG APP_VERSION=dev
 ENV VITE_APP_VERSION=$APP_VERSION
 
-COPY frontend/package.json frontend/package-lock.json ./
-RUN npm ci
+COPY frontend/package.json frontend/pnpm-lock.yaml ./
+RUN corepack enable && pnpm install --frozen-lockfile
 COPY frontend/ ./
 
 # Copy .env file (with fallback to .env.production.example)
@@ -18,7 +18,7 @@ RUN if [ ! -f .env ]; then \
   fi; \
   fi
 
-RUN npm run build
+RUN pnpm build
 
 # ========= BUILD BACKEND =========
 # Backend build stage
