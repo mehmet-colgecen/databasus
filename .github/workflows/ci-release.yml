@@ -275,7 +275,7 @@ jobs:
 
       - name: Start test containers
         run: |
-          docker compose -f docker-compose.example.yml up -d
+          docker compose -f docker-compose.yml up -d
 
       - name: Wait for containers to be ready
         run: |
@@ -388,7 +388,7 @@ jobs:
         if: always()
         run: |
           # Stop and remove containers (keeping images for next run)
-          docker compose -f docker-compose.example.yml down -v
+          docker compose -f docker-compose.yml down -v
 
           # Clean up all data directories created by docker-compose
           echo "Cleaning up data directories..."
