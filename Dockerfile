@@ -22,7 +22,7 @@ RUN pnpm build
 
 # ========= BUILD BACKEND =========
 # Backend build stage
-FROM --platform=$BUILDPLATFORM golang:1.26.1 AS backend-build
+FROM --platform=$BUILDPLATFORM golang:1.26.2 AS backend-build
 
 # Make TARGET args available early so tools built here match the final image arch
 ARG TARGETOS
@@ -81,7 +81,7 @@ RUN CGO_ENABLED=0 \
 # so the agent runs on any Linux distro (Alpine, Debian, Ubuntu, RHEL, etc.).
 # APP_VERSION is baked into the binary via -ldflags so the agent can
 # compare its version against the server and auto-update when needed.
-FROM --platform=$BUILDPLATFORM golang:1.26.1 AS agent-build
+FROM --platform=$BUILDPLATFORM golang:1.26.2 AS agent-build
 
 ARG APP_VERSION=dev
 

@@ -9,8 +9,6 @@ valkey-data/
 victoria-logs-data/
 wal-queue/
 temp/
-docker-compose.yml
-!agent/e2e/docker-compose.yml
 node_modules/
 .idea
 /articles
