@@ -125,6 +125,12 @@ func (uc *CreateMariadbBackupUsecase) buildMariadbDumpArgs(
 		args = append(args, "--events")
 	}
 
+	if mdb.Database != nil && *mdb.Database != "" {
+		for _, table := range mdb.ExcludeTables {
+			args = append(args, "--ignore-table="+*mdb.Database+"."+table)
+		}
+	}
+
 	args = append(args, "--compress")
 
 	if !config.GetEnv().IsCloud {

@@ -51,7 +51,9 @@ export const EditPostgreSqlSpecificDataComponent = ({
   const [isConnectionFailed, setIsConnectionFailed] = useState(false);
 
   const hasAdvancedValues =
-    !!database.postgresql?.includeSchemas?.length || !!database.postgresql?.isExcludeExtensions;
+    !!database.postgresql?.includeSchemas?.length ||
+    !!database.postgresql?.excludeTables?.length ||
+    !!database.postgresql?.isExcludeExtensions;
   const [isShowAdvanced, setShowAdvanced] = useState(hasAdvancedValues);
 
   const [hasAutoAddedPublicSchema, setHasAutoAddedPublicSchema] = useState(false);
@@ -506,6 +508,35 @@ export const EditPostgreSqlSpecificDataComponent = ({
                   placeholder="All schemas (default)"
                   tokenSeparators={[',']}
                 />
+              </div>
+            )}
+
+            {!isRestoreMode && (
+              <div className="mb-1 flex w-full items-center">
+                <div className="min-w-[150px]">Exclude tables</div>
+                <Select
+                  mode="tags"
+                  value={editingDatabase.postgresql?.excludeTables || []}
+                  onChange={(values) => {
+                    if (!editingDatabase.postgresql) return;
+
+                    setEditingDatabase({
+                      ...editingDatabase,
+                      postgresql: { ...editingDatabase.postgresql, excludeTables: values },
+                    });
+                  }}
+                  size="small"
+                  className="max-w-[200px] grow"
+                  placeholder="No tables excluded"
+                  tokenSeparators={[',']}
+                />
+
+                <Tooltip
+                  className="cursor-pointer"
+                  title="Tables to exclude from the backup. Use 'tablename' or 'schema.tablename'. Glob patterns are supported (e.g. 'logs_*')."
+                >
+                  <InfoCircleOutlined className="ml-2" style={{ color: 'gray' }} />
+                </Tooltip>
               </div>
             )}
 

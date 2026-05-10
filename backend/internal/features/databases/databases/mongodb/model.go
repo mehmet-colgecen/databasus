@@ -14,6 +14,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"gorm.io/gorm"
 
 	"databasus-backend/internal/util/encryption"
 	"databasus-backend/internal/util/tools"
@@ -25,20 +26,42 @@ type MongodbDatabase struct {
 
 	Version tools.MongodbVersion `json:"version" gorm:"type:text;not null"`
 
-	Host               string `json:"host"               gorm:"type:text;not null"`
-	Port               *int   `json:"port"               gorm:"type:int"`
-	Username           string `json:"username"           gorm:"type:text;not null"`
-	Password           string `json:"password"           gorm:"type:text;not null"`
-	Database           string `json:"database"           gorm:"type:text;not null"`
-	AuthDatabase       string `json:"authDatabase"       gorm:"type:text;not null;default:'admin'"`
-	IsHttps            bool   `json:"isHttps"            gorm:"type:boolean;default:false"`
-	IsSrv              bool   `json:"isSrv"              gorm:"column:is_srv;type:boolean;not null;default:false"`
-	IsDirectConnection bool   `json:"isDirectConnection" gorm:"column:is_direct_connection;type:boolean;not null;default:false"`
-	CpuCount           int    `json:"cpuCount"           gorm:"column:cpu_count;type:int;not null;default:1"`
+	Host                     string   `json:"host"               gorm:"type:text;not null"`
+	Port                     *int     `json:"port"               gorm:"type:int"`
+	Username                 string   `json:"username"           gorm:"type:text;not null"`
+	Password                 string   `json:"password"           gorm:"type:text;not null"`
+	Database                 string   `json:"database"           gorm:"type:text;not null"`
+	AuthDatabase             string   `json:"authDatabase"       gorm:"type:text;not null;default:'admin'"`
+	IsHttps                  bool     `json:"isHttps"            gorm:"type:boolean;default:false"`
+	IsSrv                    bool     `json:"isSrv"              gorm:"column:is_srv;type:boolean;not null;default:false"`
+	IsDirectConnection       bool     `json:"isDirectConnection" gorm:"column:is_direct_connection;type:boolean;not null;default:false"`
+	CpuCount                 int      `json:"cpuCount"           gorm:"column:cpu_count;type:int;not null;default:1"`
+	ExcludeCollections       []string `json:"excludeCollections" gorm:"-"`
+	ExcludeCollectionsString string   `json:"-"                  gorm:"column:exclude_collections;type:text;not null;default:''"`
 }
 
 func (m *MongodbDatabase) TableName() string {
 	return "mongodb_databases"
+}
+
+func (m *MongodbDatabase) BeforeSave(_ *gorm.DB) error {
+	if len(m.ExcludeCollections) > 0 {
+		m.ExcludeCollectionsString = strings.Join(m.ExcludeCollections, ",")
+	} else {
+		m.ExcludeCollectionsString = ""
+	}
+
+	return nil
+}
+
+func (m *MongodbDatabase) AfterFind(_ *gorm.DB) error {
+	if m.ExcludeCollectionsString != "" {
+		m.ExcludeCollections = strings.Split(m.ExcludeCollectionsString, ",")
+	} else {
+		m.ExcludeCollections = []string{}
+	}
+
+	return nil
 }
 
 func (m *MongodbDatabase) Validate() error {
@@ -178,6 +201,7 @@ func (m *MongodbDatabase) Update(incoming *MongodbDatabase) {
 	m.IsSrv = incoming.IsSrv
 	m.IsDirectConnection = incoming.IsDirectConnection
 	m.CpuCount = incoming.CpuCount
+	m.ExcludeCollections = incoming.ExcludeCollections
 
 	if incoming.Password != "" {
 		m.Password = incoming.Password

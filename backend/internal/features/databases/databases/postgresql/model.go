@@ -46,6 +46,8 @@ type PostgresqlDatabase struct {
 	// backup settings
 	IncludeSchemas       []string `json:"includeSchemas" gorm:"-"`
 	IncludeSchemasString string   `json:"-"              gorm:"column:include_schemas;type:text;not null;default:''"`
+	ExcludeTables        []string `json:"excludeTables"  gorm:"-"`
+	ExcludeTablesString  string   `json:"-"              gorm:"column:exclude_tables;type:text;not null;default:''"`
 	CpuCount             int      `json:"cpuCount"       gorm:"column:cpu_count;type:int;not null;default:1"`
 
 	// restore settings (not saved to DB)
@@ -63,6 +65,12 @@ func (p *PostgresqlDatabase) BeforeSave(_ *gorm.DB) error {
 		p.IncludeSchemasString = ""
 	}
 
+	if len(p.ExcludeTables) > 0 {
+		p.ExcludeTablesString = strings.Join(p.ExcludeTables, ",")
+	} else {
+		p.ExcludeTablesString = ""
+	}
+
 	return nil
 }
 
@@ -71,6 +79,12 @@ func (p *PostgresqlDatabase) AfterFind(_ *gorm.DB) error {
 		p.IncludeSchemas = strings.Split(p.IncludeSchemasString, ",")
 	} else {
 		p.IncludeSchemas = []string{}
+	}
+
+	if p.ExcludeTablesString != "" {
+		p.ExcludeTables = strings.Split(p.ExcludeTablesString, ",")
+	} else {
+		p.ExcludeTables = []string{}
 	}
 
 	return nil
@@ -232,6 +246,7 @@ func (p *PostgresqlDatabase) Update(incoming *PostgresqlDatabase) {
 	p.Database = incoming.Database
 	p.IsHttps = incoming.IsHttps
 	p.IncludeSchemas = incoming.IncludeSchemas
+	p.ExcludeTables = incoming.ExcludeTables
 	p.CpuCount = incoming.CpuCount
 
 	if incoming.Password != "" {

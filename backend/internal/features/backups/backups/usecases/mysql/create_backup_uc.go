@@ -123,6 +123,12 @@ func (uc *CreateMysqlBackupUsecase) buildMysqldumpArgs(my *mysqltypes.MysqlDatab
 		args = append(args, "--events")
 	}
 
+	if my.Database != nil && *my.Database != "" {
+		for _, table := range my.ExcludeTables {
+			args = append(args, "--ignore-table="+*my.Database+"."+table)
+		}
+	}
+
 	args = append(args, uc.getNetworkCompressionArgs(my)...)
 
 	if !config.GetEnv().IsCloud {

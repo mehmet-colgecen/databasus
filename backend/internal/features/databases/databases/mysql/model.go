@@ -14,6 +14,7 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 
 	"databasus-backend/internal/util/encryption"
 	"databasus-backend/internal/util/tools"
@@ -25,18 +26,40 @@ type MysqlDatabase struct {
 
 	Version tools.MysqlVersion `json:"version" gorm:"type:text;not null"`
 
-	Host            string  `json:"host"            gorm:"type:text;not null"`
-	Port            int     `json:"port"            gorm:"type:int;not null"`
-	Username        string  `json:"username"        gorm:"type:text;not null"`
-	Password        string  `json:"password"        gorm:"type:text;not null"`
-	Database        *string `json:"database"        gorm:"type:text"`
-	IsHttps         bool    `json:"isHttps"         gorm:"type:boolean;default:false"`
-	Privileges      string  `json:"privileges"      gorm:"column:privileges;type:text;not null;default:''"`
-	IsZstdSupported bool    `json:"isZstdSupported" gorm:"column:is_zstd_supported;type:boolean;not null;default:true"`
+	Host                string   `json:"host"            gorm:"type:text;not null"`
+	Port                int      `json:"port"            gorm:"type:int;not null"`
+	Username            string   `json:"username"        gorm:"type:text;not null"`
+	Password            string   `json:"password"        gorm:"type:text;not null"`
+	Database            *string  `json:"database"        gorm:"type:text"`
+	IsHttps             bool     `json:"isHttps"         gorm:"type:boolean;default:false"`
+	ExcludeTables       []string `json:"excludeTables"   gorm:"-"`
+	ExcludeTablesString string   `json:"-"               gorm:"column:exclude_tables;type:text;not null;default:''"`
+	Privileges          string   `json:"privileges"      gorm:"column:privileges;type:text;not null;default:''"`
+	IsZstdSupported     bool     `json:"isZstdSupported" gorm:"column:is_zstd_supported;type:boolean;not null;default:true"`
 }
 
 func (m *MysqlDatabase) TableName() string {
 	return "mysql_databases"
+}
+
+func (m *MysqlDatabase) BeforeSave(_ *gorm.DB) error {
+	if len(m.ExcludeTables) > 0 {
+		m.ExcludeTablesString = strings.Join(m.ExcludeTables, ",")
+	} else {
+		m.ExcludeTablesString = ""
+	}
+
+	return nil
+}
+
+func (m *MysqlDatabase) AfterFind(_ *gorm.DB) error {
+	if m.ExcludeTablesString != "" {
+		m.ExcludeTables = strings.Split(m.ExcludeTablesString, ",")
+	} else {
+		m.ExcludeTables = []string{}
+	}
+
+	return nil
 }
 
 func (m *MysqlDatabase) Validate() error {
@@ -171,6 +194,7 @@ func (m *MysqlDatabase) Update(incoming *MysqlDatabase) {
 	m.Username = incoming.Username
 	m.Database = incoming.Database
 	m.IsHttps = incoming.IsHttps
+	m.ExcludeTables = incoming.ExcludeTables
 	m.Privileges = incoming.Privileges
 	m.IsZstdSupported = incoming.IsZstdSupported
 

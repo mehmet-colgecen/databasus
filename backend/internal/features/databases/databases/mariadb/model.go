@@ -14,6 +14,7 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 
 	"databasus-backend/internal/util/encryption"
 	"databasus-backend/internal/util/tools"
@@ -25,18 +26,40 @@ type MariadbDatabase struct {
 
 	Version tools.MariadbVersion `json:"version" gorm:"type:text;not null"`
 
-	Host            string  `json:"host"            gorm:"type:text;not null"`
-	Port            int     `json:"port"            gorm:"type:int;not null"`
-	Username        string  `json:"username"        gorm:"type:text;not null"`
-	Password        string  `json:"password"        gorm:"type:text;not null"`
-	Database        *string `json:"database"        gorm:"type:text"`
-	IsHttps         bool    `json:"isHttps"         gorm:"type:boolean;default:false"`
-	IsExcludeEvents bool    `json:"isExcludeEvents" gorm:"type:boolean;default:false"`
-	Privileges      string  `json:"privileges"      gorm:"column:privileges;type:text;not null;default:''"`
+	Host                string   `json:"host"            gorm:"type:text;not null"`
+	Port                int      `json:"port"            gorm:"type:int;not null"`
+	Username            string   `json:"username"        gorm:"type:text;not null"`
+	Password            string   `json:"password"        gorm:"type:text;not null"`
+	Database            *string  `json:"database"        gorm:"type:text"`
+	IsHttps             bool     `json:"isHttps"         gorm:"type:boolean;default:false"`
+	IsExcludeEvents     bool     `json:"isExcludeEvents" gorm:"type:boolean;default:false"`
+	ExcludeTables       []string `json:"excludeTables"   gorm:"-"`
+	ExcludeTablesString string   `json:"-"               gorm:"column:exclude_tables;type:text;not null;default:''"`
+	Privileges          string   `json:"privileges"      gorm:"column:privileges;type:text;not null;default:''"`
 }
 
 func (m *MariadbDatabase) TableName() string {
 	return "mariadb_databases"
+}
+
+func (m *MariadbDatabase) BeforeSave(_ *gorm.DB) error {
+	if len(m.ExcludeTables) > 0 {
+		m.ExcludeTablesString = strings.Join(m.ExcludeTables, ",")
+	} else {
+		m.ExcludeTablesString = ""
+	}
+
+	return nil
+}
+
+func (m *MariadbDatabase) AfterFind(_ *gorm.DB) error {
+	if m.ExcludeTablesString != "" {
+		m.ExcludeTables = strings.Split(m.ExcludeTablesString, ",")
+	} else {
+		m.ExcludeTables = []string{}
+	}
+
+	return nil
 }
 
 func (m *MariadbDatabase) Validate() error {
@@ -171,6 +194,7 @@ func (m *MariadbDatabase) Update(incoming *MariadbDatabase) {
 	m.Database = incoming.Database
 	m.IsHttps = incoming.IsHttps
 	m.IsExcludeEvents = incoming.IsExcludeEvents
+	m.ExcludeTables = incoming.ExcludeTables
 	m.Privileges = incoming.Privileges
 
 	if incoming.Password != "" {
