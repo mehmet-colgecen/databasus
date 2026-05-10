@@ -641,10 +641,6 @@ services:
   # handshake regressions without multiplying the version matrix.
   # ================================================================
 
-  # Certs are baked in via build context (COPY) instead of bind-mounted.
-  # CI runs Docker-in-Docker where host paths don't resolve to the job
-  # container's workspace, but build contexts are uploaded to the daemon
-  # as a tarball so they always reach the container.
   test-postgres-ssl:
     build:
       context: ./backend/internal/features/tests/testdata/ssl
