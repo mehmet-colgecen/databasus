@@ -144,7 +144,7 @@ func (r *RcloneStorage) Validate(encryptor encryption.FieldEncryptor) error {
 		return errors.New("rclone config content is required")
 	}
 
-	configContent, err := encryptor.Decrypt(r.StorageID, r.ConfigContent)
+	configContent, err := encryptor.Decrypt(r.ConfigContent)
 	if err != nil {
 		return fmt.Errorf("failed to decrypt rclone config content: %w", err)
 	}
@@ -212,7 +212,7 @@ func (r *RcloneStorage) HideSensitiveData() {
 
 func (r *RcloneStorage) EncryptSensitiveData(encryptor encryption.FieldEncryptor) error {
 	if r.ConfigContent != "" {
-		encrypted, err := encryptor.Encrypt(r.StorageID, r.ConfigContent)
+		encrypted, err := encryptor.Encrypt(r.ConfigContent)
 		if err != nil {
 			return fmt.Errorf("failed to encrypt rclone config content: %w", err)
 		}
@@ -234,7 +234,7 @@ func (r *RcloneStorage) getFs(
 	ctx context.Context,
 	encryptor encryption.FieldEncryptor,
 ) (fs.Fs, error) {
-	configContent, err := encryptor.Decrypt(r.StorageID, r.ConfigContent)
+	configContent, err := encryptor.Decrypt(r.ConfigContent)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt rclone config content: %w", err)
 	}

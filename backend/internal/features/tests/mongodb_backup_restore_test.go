@@ -50,6 +50,53 @@ type MongodbTestDataItem struct {
 	CreatedAt time.Time `bson:"created_at"`
 }
 
+func Test_CreateMongodbDatabase_WhenVersionIsBelow42_ReturnsBadRequest(t *testing.T) {
+	env := config.GetEnv()
+	port := env.TestMongodb40Port
+	if port == "" {
+		t.Skip("MongoDB 4.0 port not configured")
+	}
+	portInt, err := strconv.Atoi(port)
+	if err != nil {
+		t.Fatalf("invalid TEST_MONGODB_40_PORT: %v", err)
+	}
+
+	router := createTestRouter()
+	user := users_testing.CreateTestUser(users_enums.UserRoleMember)
+	workspace := workspaces_testing.CreateTestWorkspace(
+		"MongoDB 4.0 reject test", user, router,
+	)
+	defer workspaces_testing.RemoveTestWorkspace(workspace, router)
+
+	request := databases.Database{
+		Name:        "MongoDB 4.0 rejected",
+		WorkspaceID: &workspace.ID,
+		Type:        databases.DatabaseTypeMongodb,
+		Mongodb: &mongodbtypes.MongodbDatabase{
+			Host:         env.TestLocalhost,
+			Port:         &portInt,
+			Username:     "root",
+			Password:     "rootpassword",
+			Database:     "testdb",
+			AuthDatabase: "admin",
+			Version:      tools.MongodbVersion4,
+			IsHttps:      false,
+			IsSrv:        false,
+			CpuCount:     1,
+		},
+	}
+
+	w := workspaces_testing.MakeAPIRequest(
+		router, "POST", "/api/v1/databases/create",
+		"Bearer "+user.Token, request,
+	)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code,
+		"creating a MongoDB 4.0 database should be rejected; got body: %s", w.Body.String())
+	assert.Contains(t, w.Body.String(), "4.2",
+		"error should reference the 4.2 minimum supported version")
+}
+
 func Test_BackupAndRestoreMongodb_RestoreIsSuccessful(t *testing.T) {
 	env := config.GetEnv()
 	cases := []struct {

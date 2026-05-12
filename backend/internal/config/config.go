@@ -101,6 +101,7 @@ type EnvVariables struct {
 	TestMariadb118Port  string `env:"TEST_MARIADB_118_PORT"`
 	TestMariadb120Port  string `env:"TEST_MARIADB_120_PORT"`
 
+	TestMongodb40Port string `env:"TEST_MONGODB_40_PORT"`
 	TestMongodb42Port string `env:"TEST_MONGODB_42_PORT"`
 	TestMongodb44Port string `env:"TEST_MONGODB_44_PORT"`
 	TestMongodb50Port string `env:"TEST_MONGODB_50_PORT"`

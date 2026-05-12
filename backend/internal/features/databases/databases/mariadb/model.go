@@ -81,7 +81,6 @@ func (m *MariadbDatabase) Validate() error {
 func (m *MariadbDatabase) TestConnection(
 	logger *slog.Logger,
 	encryptor encryption.FieldEncryptor,
-	databaseID uuid.UUID,
 ) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
@@ -90,7 +89,7 @@ func (m *MariadbDatabase) TestConnection(
 		return errors.New("database name is required for MariaDB backup")
 	}
 
-	password, err := decryptPasswordIfNeeded(m.Password, encryptor, databaseID)
+	password, err := decryptPasswordIfNeeded(m.Password, encryptor)
 	if err != nil {
 		return fmt.Errorf("failed to decrypt password: %w", err)
 	}
@@ -138,13 +137,12 @@ func (m *MariadbDatabase) GetRawDbSizeMb(
 	ctx context.Context,
 	logger *slog.Logger,
 	encryptor encryption.FieldEncryptor,
-	databaseID uuid.UUID,
 ) (float64, error) {
 	if m.Database == nil || *m.Database == "" {
 		return 0, nil
 	}
 
-	password, err := decryptPasswordIfNeeded(m.Password, encryptor, databaseID)
+	password, err := decryptPasswordIfNeeded(m.Password, encryptor)
 	if err != nil {
 		return 0, fmt.Errorf("failed to decrypt password: %w", err)
 	}
@@ -203,11 +201,10 @@ func (m *MariadbDatabase) Update(incoming *MariadbDatabase) {
 }
 
 func (m *MariadbDatabase) EncryptSensitiveFields(
-	databaseID uuid.UUID,
 	encryptor encryption.FieldEncryptor,
 ) error {
 	if m.Password != "" {
-		encrypted, err := encryptor.Encrypt(databaseID, m.Password)
+		encrypted, err := encryptor.Encrypt(m.Password)
 		if err != nil {
 			return err
 		}
@@ -219,7 +216,6 @@ func (m *MariadbDatabase) EncryptSensitiveFields(
 func (m *MariadbDatabase) PopulateDbData(
 	logger *slog.Logger,
 	encryptor encryption.FieldEncryptor,
-	databaseID uuid.UUID,
 ) error {
 	if m.Database == nil || *m.Database == "" {
 		return nil
@@ -228,7 +224,7 @@ func (m *MariadbDatabase) PopulateDbData(
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	password, err := decryptPasswordIfNeeded(m.Password, encryptor, databaseID)
+	password, err := decryptPasswordIfNeeded(m.Password, encryptor)
 	if err != nil {
 		return fmt.Errorf("failed to decrypt password: %w", err)
 	}
@@ -263,7 +259,6 @@ func (m *MariadbDatabase) PopulateDbData(
 func (m *MariadbDatabase) PopulateVersion(
 	logger *slog.Logger,
 	encryptor encryption.FieldEncryptor,
-	databaseID uuid.UUID,
 ) error {
 	if m.Database == nil || *m.Database == "" {
 		return nil
@@ -272,7 +267,7 @@ func (m *MariadbDatabase) PopulateVersion(
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	password, err := decryptPasswordIfNeeded(m.Password, encryptor, databaseID)
+	password, err := decryptPasswordIfNeeded(m.Password, encryptor)
 	if err != nil {
 		return fmt.Errorf("failed to decrypt password: %w", err)
 	}
@@ -302,9 +297,8 @@ func (m *MariadbDatabase) IsUserReadOnly(
 	ctx context.Context,
 	logger *slog.Logger,
 	encryptor encryption.FieldEncryptor,
-	databaseID uuid.UUID,
 ) (bool, []string, error) {
-	password, err := decryptPasswordIfNeeded(m.Password, encryptor, databaseID)
+	password, err := decryptPasswordIfNeeded(m.Password, encryptor)
 	if err != nil {
 		return false, nil, fmt.Errorf("failed to decrypt password: %w", err)
 	}
@@ -327,12 +321,27 @@ func (m *MariadbDatabase) IsUserReadOnly(
 	}
 	defer func() { _ = rows.Close() }()
 
-	writePrivileges := []string{
-		"INSERT", "UPDATE", "DELETE", "CREATE", "DROP", "ALTER",
-		"INDEX", "GRANT OPTION", "ALL PRIVILEGES", "SUPER",
-		"EXECUTE", "FILE", "RELOAD", "SHUTDOWN", "CREATE ROUTINE",
-		"ALTER ROUTINE", "CREATE USER",
-		"CREATE TABLESPACE", "DELETE HISTORY", "REFERENCES",
+	writePrivileges := map[string]bool{
+		"INSERT":            true,
+		"UPDATE":            true,
+		"DELETE":            true,
+		"CREATE":            true,
+		"DROP":              true,
+		"ALTER":             true,
+		"INDEX":             true,
+		"GRANT OPTION":      true,
+		"ALL PRIVILEGES":    true,
+		"SUPER":             true,
+		"EXECUTE":           true,
+		"FILE":              true,
+		"RELOAD":            true,
+		"SHUTDOWN":          true,
+		"CREATE ROUTINE":    true,
+		"ALTER ROUTINE":     true,
+		"CREATE USER":       true,
+		"CREATE TABLESPACE": true,
+		"DELETE HISTORY":    true,
+		"REFERENCES":        true,
 	}
 
 	detectedPrivileges := make(map[string]bool)
@@ -343,8 +352,8 @@ func (m *MariadbDatabase) IsUserReadOnly(
 			return false, nil, fmt.Errorf("failed to scan grant: %w", err)
 		}
 
-		for _, priv := range writePrivileges {
-			if regexp.MustCompile(`(?i)\b` + priv + `\b`).MatchString(grant) {
+		for _, priv := range parseGrantPrivileges(grant) {
+			if writePrivileges[priv] {
 				detectedPrivileges[priv] = true
 			}
 		}
@@ -367,9 +376,8 @@ func (m *MariadbDatabase) CreateReadOnlyUser(
 	ctx context.Context,
 	logger *slog.Logger,
 	encryptor encryption.FieldEncryptor,
-	databaseID uuid.UUID,
 ) (string, string, error) {
-	password, err := decryptPasswordIfNeeded(m.Password, encryptor, databaseID)
+	password, err := decryptPasswordIfNeeded(m.Password, encryptor)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to decrypt password: %w", err)
 	}
@@ -570,6 +578,37 @@ func mapMariadb11xVersion(minor string) (tools.MariadbVersion, error) {
 	}
 }
 
+// parseGrantPrivileges extracts comma-separated privilege names from a single
+// SHOW GRANTS line. Returns uppercased privilege tokens with column-level
+// qualifiers like "(col1, col2)" stripped. Returns nil for role grants and
+// other lines without an ON clause.
+//
+// Parsing the privilege list is necessary because a naive substring search
+// over the whole grant string falsely matches privilege keywords that appear
+// inside other privilege names — e.g. "SHOW CREATE ROUTINE" contains both
+// "CREATE" and "CREATE ROUTINE" as substrings.
+func parseGrantPrivileges(grant string) []string {
+	headRe := regexp.MustCompile(`(?is)^\s*GRANT\s+(.+?)\s+ON\s+`)
+	m := headRe.FindStringSubmatch(grant)
+	if m == nil {
+		return nil
+	}
+
+	colRe := regexp.MustCompile(`\s*\([^)]*\)`)
+	privsStr := colRe.ReplaceAllString(m[1], "")
+
+	parts := strings.Split(privsStr, ",")
+	privs := make([]string, 0, len(parts))
+	for _, p := range parts {
+		p = strings.TrimSpace(strings.ToUpper(p))
+		if p != "" {
+			privs = append(privs, p)
+		}
+	}
+
+	return privs
+}
+
 // detectPrivileges detects backup-related privileges and returns them as comma-separated string
 func detectPrivileges(ctx context.Context, db *sql.DB, database string) (string, error) {
 	rows, err := db.QueryContext(ctx, "SHOW GRANTS FOR CURRENT_USER()")
@@ -675,10 +714,9 @@ func checkBackupPermissions(privileges string) error {
 func decryptPasswordIfNeeded(
 	password string,
 	encryptor encryption.FieldEncryptor,
-	databaseID uuid.UUID,
 ) (string, error) {
 	if encryptor == nil {
 		return password, nil
 	}
-	return encryptor.Decrypt(databaseID, password)
+	return encryptor.Decrypt(password)
 }

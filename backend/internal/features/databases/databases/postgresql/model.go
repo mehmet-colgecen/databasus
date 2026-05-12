@@ -52,6 +52,8 @@ type PostgresqlDatabase struct {
 
 	// restore settings (not saved to DB)
 	IsExcludeExtensions bool `json:"isExcludeExtensions" gorm:"-"`
+	IsRestoreOwnership  bool `json:"isRestoreOwnership"  gorm:"-"`
+	IsRestorePrivileges bool `json:"isRestorePrivileges" gorm:"-"`
 }
 
 func (p *PostgresqlDatabase) TableName() string {
@@ -163,7 +165,6 @@ func (p *PostgresqlDatabase) Validate() error {
 func (p *PostgresqlDatabase) TestConnection(
 	logger *slog.Logger,
 	encryptor encryption.FieldEncryptor,
-	databaseID uuid.UUID,
 ) error {
 	if p.BackupType == PostgresBackupTypeWalV1 {
 		return errors.New("test connection is not supported for WAL backup type")
@@ -172,7 +173,7 @@ func (p *PostgresqlDatabase) TestConnection(
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	return testSingleDatabaseConnection(logger, ctx, p, encryptor, databaseID)
+	return testSingleDatabaseConnection(logger, ctx, p, encryptor)
 }
 
 // GetRawDbSizeMb returns whole-database size via pg_database_size; when
@@ -181,7 +182,6 @@ func (p *PostgresqlDatabase) GetRawDbSizeMb(
 	ctx context.Context,
 	logger *slog.Logger,
 	encryptor encryption.FieldEncryptor,
-	databaseID uuid.UUID,
 ) (float64, error) {
 	if p.BackupType == PostgresBackupTypeWalV1 {
 		return 0, nil
@@ -191,7 +191,7 @@ func (p *PostgresqlDatabase) GetRawDbSizeMb(
 		return 0, nil
 	}
 
-	password, err := decryptPasswordIfNeeded(p.Password, encryptor, databaseID)
+	password, err := decryptPasswordIfNeeded(p.Password, encryptor)
 	if err != nil {
 		return 0, fmt.Errorf("failed to decrypt password: %w", err)
 	}
@@ -255,11 +255,10 @@ func (p *PostgresqlDatabase) Update(incoming *PostgresqlDatabase) {
 }
 
 func (p *PostgresqlDatabase) EncryptSensitiveFields(
-	databaseID uuid.UUID,
 	encryptor encryption.FieldEncryptor,
 ) error {
 	if p.Password != "" {
-		encrypted, err := encryptor.Encrypt(databaseID, p.Password)
+		encrypted, err := encryptor.Encrypt(p.Password)
 		if err != nil {
 			return err
 		}
@@ -274,20 +273,18 @@ func (p *PostgresqlDatabase) EncryptSensitiveFields(
 func (p *PostgresqlDatabase) PopulateDbData(
 	logger *slog.Logger,
 	encryptor encryption.FieldEncryptor,
-	databaseID uuid.UUID,
 ) error {
 	if p.BackupType == PostgresBackupTypeWalV1 {
 		return nil
 	}
 
-	return p.PopulateVersion(logger, encryptor, databaseID)
+	return p.PopulateVersion(logger, encryptor)
 }
 
 // PopulateVersion detects and sets the PostgreSQL version by querying the database.
 func (p *PostgresqlDatabase) PopulateVersion(
 	logger *slog.Logger,
 	encryptor encryption.FieldEncryptor,
-	databaseID uuid.UUID,
 ) error {
 	if p.Database == nil || *p.Database == "" {
 		return nil
@@ -296,7 +293,7 @@ func (p *PostgresqlDatabase) PopulateVersion(
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	password, err := decryptPasswordIfNeeded(p.Password, encryptor, databaseID)
+	password, err := decryptPasswordIfNeeded(p.Password, encryptor)
 	if err != nil {
 		return fmt.Errorf("failed to decrypt password: %w", err)
 	}
@@ -340,13 +337,12 @@ func (p *PostgresqlDatabase) IsUserReadOnly(
 	ctx context.Context,
 	logger *slog.Logger,
 	encryptor encryption.FieldEncryptor,
-	databaseID uuid.UUID,
 ) (bool, []string, error) {
 	if p.BackupType == PostgresBackupTypeWalV1 {
 		return false, nil, errors.New("read-only check is not supported for WAL backup type")
 	}
 
-	password, err := decryptPasswordIfNeeded(p.Password, encryptor, databaseID)
+	password, err := decryptPasswordIfNeeded(p.Password, encryptor)
 	if err != nil {
 		return false, nil, fmt.Errorf("failed to decrypt password: %w", err)
 	}
@@ -516,13 +512,12 @@ func (p *PostgresqlDatabase) CreateReadOnlyUser(
 	ctx context.Context,
 	logger *slog.Logger,
 	encryptor encryption.FieldEncryptor,
-	databaseID uuid.UUID,
 ) (string, string, error) {
 	if p.BackupType == PostgresBackupTypeWalV1 {
 		return "", "", errors.New("read-only user creation is not supported for WAL backup type")
 	}
 
-	password, err := decryptPasswordIfNeeded(p.Password, encryptor, databaseID)
+	password, err := decryptPasswordIfNeeded(p.Password, encryptor)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to decrypt password: %w", err)
 	}
@@ -960,7 +955,6 @@ func testSingleDatabaseConnection(
 	ctx context.Context,
 	postgresDb *PostgresqlDatabase,
 	encryptor encryption.FieldEncryptor,
-	databaseID uuid.UUID,
 ) error {
 	// For single database backup, we need to connect to the specific database
 	if postgresDb.Database == nil || *postgresDb.Database == "" {
@@ -968,7 +962,7 @@ func testSingleDatabaseConnection(
 	}
 
 	// Decrypt password if needed
-	password, err := decryptPasswordIfNeeded(postgresDb.Password, encryptor, databaseID)
+	password, err := decryptPasswordIfNeeded(postgresDb.Password, encryptor)
 	if err != nil {
 		return fmt.Errorf("failed to decrypt password: %w", err)
 	}
@@ -1195,12 +1189,11 @@ func escapeConnectionStringValue(value string) string {
 func decryptPasswordIfNeeded(
 	password string,
 	encryptor encryption.FieldEncryptor,
-	databaseID uuid.UUID,
 ) (string, error) {
 	if encryptor == nil {
 		return password, nil
 	}
-	return encryptor.Decrypt(databaseID, password)
+	return encryptor.Decrypt(password)
 }
 
 func isSupabaseConnection(host, username string) bool {

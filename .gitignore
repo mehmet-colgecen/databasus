@@ -17,3 +17,4 @@ node_modules/
 /scripts
 .vscode/settings.json
 .claude
+backend/cleanup_test_db.exe

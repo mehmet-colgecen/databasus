@@ -21,4 +21,6 @@ export interface PostgresqlDatabase {
 
   // restore settings (not saved to DB)
   isExcludeExtensions?: boolean;
+  isRestoreOwnership?: boolean;
+  isRestorePrivileges?: boolean;
 }

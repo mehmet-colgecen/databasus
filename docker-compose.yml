@@ -539,6 +539,22 @@ services:
       retries: 10
 
   # Test MongoDB containers
+  test-mongodb-40:
+    image: mongo:4.0
+    container_name: test-mongodb-40
+    ports:
+      - "${TEST_MONGODB_40_PORT}:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+      MONGO_INITDB_DATABASE: testdb
+    command: mongod --auth
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   test-mongodb-42:
     image: mongo:4.2
     container_name: test-mongodb-42
@@ -641,10 +657,6 @@ services:
   # handshake regressions without multiplying the version matrix.
   # ================================================================
 
-  # Certs are baked in via build context (COPY) instead of bind-mounted.
-  # CI runs Docker-in-Docker where host paths don't resolve to the job
-  # container's workspace, but build contexts are uploaded to the daemon
-  # as a tarball so they always reach the container.
   test-postgres-ssl:
     build:
       context: ./backend/internal/features/tests/testdata/ssl

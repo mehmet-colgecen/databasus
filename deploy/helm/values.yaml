@@ -4,6 +4,8 @@
 image:
   repository: databasus/databasus
   tag: null
+  # When set, overrides `tag` and pins to an immutable digest (e.g. "sha256:abc...").
+  digest: ""
   pullPolicy: Always
 
 imagePullSecrets: []
