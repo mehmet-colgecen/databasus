@@ -12,6 +12,8 @@ import (
 	"databasus-backend/internal/features/databases/databases/mongodb"
 	"databasus-backend/internal/features/databases/databases/mysql"
 	"databasus-backend/internal/features/databases/databases/postgresql"
+	"databasus-backend/internal/features/databases/databases/rabbitmq"
+	"databasus-backend/internal/features/databases/databases/redis"
 	"databasus-backend/internal/features/notifiers"
 	"databasus-backend/internal/util/encryption"
 )
@@ -29,6 +31,8 @@ type Database struct {
 	Mysql      *mysql.MysqlDatabase           `json:"mysql,omitzero"      gorm:"foreignKey:DatabaseID"`
 	Mariadb    *mariadb.MariadbDatabase       `json:"mariadb,omitzero"    gorm:"foreignKey:DatabaseID"`
 	Mongodb    *mongodb.MongodbDatabase       `json:"mongodb,omitzero"    gorm:"foreignKey:DatabaseID"`
+	Redis      *redis.RedisDatabase           `json:"redis,omitzero"      gorm:"foreignKey:DatabaseID"`
+	Rabbitmq   *rabbitmq.RabbitmqDatabase     `json:"rabbitmq,omitzero"   gorm:"foreignKey:DatabaseID"`
 
 	Notifiers []notifiers.Notifier `json:"notifiers" gorm:"many2many:database_notifiers;"`
 
@@ -69,6 +73,16 @@ func (d *Database) Validate() error {
 			return errors.New("mongodb database is required")
 		}
 		return d.Mongodb.Validate()
+	case DatabaseTypeRedis:
+		if d.Redis == nil {
+			return errors.New("redis database is required")
+		}
+		return d.Redis.Validate()
+	case DatabaseTypeRabbitmq:
+		if d.Rabbitmq == nil {
+			return errors.New("rabbitmq database is required")
+		}
+		return d.Rabbitmq.Validate()
 	default:
 		return errors.New("invalid database type: " + string(d.Type))
 	}
@@ -144,6 +158,12 @@ func (d *Database) EncryptSensitiveFields(encryptor encryption.FieldEncryptor) e
 	if d.Mongodb != nil {
 		return d.Mongodb.EncryptSensitiveFields(encryptor)
 	}
+	if d.Redis != nil {
+		return d.Redis.EncryptSensitiveFields(encryptor)
+	}
+	if d.Rabbitmq != nil {
+		return d.Rabbitmq.EncryptSensitiveFields(encryptor)
+	}
 	return nil
 }
 
@@ -162,6 +182,12 @@ func (d *Database) PopulateDbData(
 	}
 	if d.Mongodb != nil {
 		return d.Mongodb.PopulateDbData(logger, encryptor)
+	}
+	if d.Redis != nil {
+		return d.Redis.PopulateDbData(logger, encryptor)
+	}
+	if d.Rabbitmq != nil {
+		return d.Rabbitmq.PopulateDbData(logger, encryptor)
 	}
 	return nil
 }
@@ -188,6 +214,14 @@ func (d *Database) Update(incoming *Database) {
 		if d.Mongodb != nil && incoming.Mongodb != nil {
 			d.Mongodb.Update(incoming.Mongodb)
 		}
+	case DatabaseTypeRedis:
+		if d.Redis != nil && incoming.Redis != nil {
+			d.Redis.Update(incoming.Redis)
+		}
+	case DatabaseTypeRabbitmq:
+		if d.Rabbitmq != nil && incoming.Rabbitmq != nil {
+			d.Rabbitmq.Update(incoming.Rabbitmq)
+		}
 	}
 }
 
@@ -207,6 +241,10 @@ func (d *Database) getSpecificDatabase() DatabaseConnector {
 		return d.Mariadb
 	case DatabaseTypeMongodb:
 		return d.Mongodb
+	case DatabaseTypeRedis:
+		return d.Redis
+	case DatabaseTypeRabbitmq:
+		return d.Rabbitmq
 	}
 
 	panic("invalid database type: " + string(d.Type))

@@ -8,6 +8,8 @@ import {
   type MongodbDatabase,
   type MysqlDatabase,
   type PostgresqlDatabase,
+  type RabbitmqDatabase,
+  type RedisDatabase,
   databaseApi,
   getDatabaseLogoFromType,
 } from '../../../../entity/databases';
@@ -30,6 +32,8 @@ const databaseTypeOptions = [
   { value: DatabaseType.MYSQL, label: 'MySQL' },
   { value: DatabaseType.MARIADB, label: 'MariaDB' },
   { value: DatabaseType.MONGODB, label: 'MongoDB' },
+  { value: DatabaseType.REDIS, label: 'Redis' },
+  { value: DatabaseType.RABBITMQ, label: 'RabbitMQ' },
 ];
 
 export const EditDatabaseBaseInfoComponent = ({
@@ -61,6 +65,8 @@ export const EditDatabaseBaseInfoComponent = ({
       mysql: undefined,
       mariadb: undefined,
       mongodb: undefined,
+      redis: undefined,
+      rabbitmq: undefined,
     };
 
     switch (newType) {
@@ -76,6 +82,13 @@ export const EditDatabaseBaseInfoComponent = ({
         break;
       case DatabaseType.MONGODB:
         updatedDatabase.mongodb = editingDatabase.mongodb ?? ({ cpuCount: 1 } as MongodbDatabase);
+        break;
+      case DatabaseType.REDIS:
+        updatedDatabase.redis = editingDatabase.redis ?? ({ port: 6379 } as RedisDatabase);
+        break;
+      case DatabaseType.RABBITMQ:
+        updatedDatabase.rabbitmq =
+          editingDatabase.rabbitmq ?? ({ managementPort: 15672 } as RabbitmqDatabase);
         break;
     }
 

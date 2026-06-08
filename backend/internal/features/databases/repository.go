@@ -10,6 +10,8 @@ import (
 	"databasus-backend/internal/features/databases/databases/mongodb"
 	"databasus-backend/internal/features/databases/databases/mysql"
 	"databasus-backend/internal/features/databases/databases/postgresql"
+	"databasus-backend/internal/features/databases/databases/rabbitmq"
+	"databasus-backend/internal/features/databases/databases/redis"
 	"databasus-backend/internal/storage"
 )
 
@@ -45,17 +47,27 @@ func (r *DatabaseRepository) Save(database *Database) (*Database, error) {
 				return errors.New("mongodb configuration is required for MongoDB database")
 			}
 			database.Mongodb.DatabaseID = &database.ID
+		case DatabaseTypeRedis:
+			if database.Redis == nil {
+				return errors.New("redis configuration is required for Redis database")
+			}
+			database.Redis.DatabaseID = &database.ID
+		case DatabaseTypeRabbitmq:
+			if database.Rabbitmq == nil {
+				return errors.New("rabbitmq configuration is required for RabbitMQ database")
+			}
+			database.Rabbitmq.DatabaseID = &database.ID
 		}
 
 		if isNew {
 			if err := tx.Create(database).
-				Omit("Postgresql", "Mysql", "Mariadb", "Mongodb", "Notifiers").
+				Omit("Postgresql", "Mysql", "Mariadb", "Mongodb", "Redis", "Rabbitmq", "Notifiers").
 				Error; err != nil {
 				return err
 			}
 		} else {
 			if err := tx.Save(database).
-				Omit("Postgresql", "Mysql", "Mariadb", "Mongodb", "Notifiers").
+				Omit("Postgresql", "Mysql", "Mariadb", "Mongodb", "Redis", "Rabbitmq", "Notifiers").
 				Error; err != nil {
 				return err
 			}
@@ -110,6 +122,30 @@ func (r *DatabaseRepository) Save(database *Database) (*Database, error) {
 					return err
 				}
 			}
+		case DatabaseTypeRedis:
+			database.Redis.DatabaseID = &database.ID
+			if database.Redis.ID == uuid.Nil {
+				database.Redis.ID = uuid.New()
+				if err := tx.Create(database.Redis).Error; err != nil {
+					return err
+				}
+			} else {
+				if err := tx.Save(database.Redis).Error; err != nil {
+					return err
+				}
+			}
+		case DatabaseTypeRabbitmq:
+			database.Rabbitmq.DatabaseID = &database.ID
+			if database.Rabbitmq.ID == uuid.Nil {
+				database.Rabbitmq.ID = uuid.New()
+				if err := tx.Create(database.Rabbitmq).Error; err != nil {
+					return err
+				}
+			} else {
+				if err := tx.Save(database.Rabbitmq).Error; err != nil {
+					return err
+				}
+			}
 		}
 
 		if err := tx.
@@ -137,6 +173,8 @@ func (r *DatabaseRepository) FindByID(id uuid.UUID) (*Database, error) {
 		Preload("Mysql").
 		Preload("Mariadb").
 		Preload("Mongodb").
+		Preload("Redis").
+		Preload("Rabbitmq").
 		Preload("Notifiers").
 		Where("id = ?", id).
 		First(&database).Error; err != nil {
@@ -155,6 +193,8 @@ func (r *DatabaseRepository) FindByWorkspaceID(workspaceID uuid.UUID) ([]*Databa
 		Preload("Mysql").
 		Preload("Mariadb").
 		Preload("Mongodb").
+		Preload("Redis").
+		Preload("Rabbitmq").
 		Preload("Notifiers").
 		Where("workspace_id = ?", workspaceID).
 		Order("CASE WHEN health_status = 'UNAVAILABLE' THEN 1 WHEN health_status = 'AVAILABLE' THEN 2 WHEN health_status IS NULL THEN 3 ELSE 4 END, name ASC").
@@ -203,6 +243,18 @@ func (r *DatabaseRepository) Delete(id uuid.UUID) error {
 				Delete(&mongodb.MongodbDatabase{}).Error; err != nil {
 				return err
 			}
+		case DatabaseTypeRedis:
+			if err := tx.
+				Where("database_id = ?", id).
+				Delete(&redis.RedisDatabase{}).Error; err != nil {
+				return err
+			}
+		case DatabaseTypeRabbitmq:
+			if err := tx.
+				Where("database_id = ?", id).
+				Delete(&rabbitmq.RabbitmqDatabase{}).Error; err != nil {
+				return err
+			}
 		}
 
 		if err := tx.Delete(&Database{}, id).Error; err != nil {
@@ -236,6 +288,8 @@ func (r *DatabaseRepository) GetAllDatabases() ([]*Database, error) {
 		Preload("Mysql").
 		Preload("Mariadb").
 		Preload("Mongodb").
+		Preload("Redis").
+		Preload("Rabbitmq").
 		Preload("Notifiers").
 		Find(&databases).Error; err != nil {
 		return nil, err

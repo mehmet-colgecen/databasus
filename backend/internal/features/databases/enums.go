@@ -7,6 +7,8 @@ const (
 	DatabaseTypeMysql    DatabaseType = "MYSQL"
 	DatabaseTypeMariadb  DatabaseType = "MARIADB"
 	DatabaseTypeMongodb  DatabaseType = "MONGODB"
+	DatabaseTypeRedis    DatabaseType = "REDIS"
+	DatabaseTypeRabbitmq DatabaseType = "RABBITMQ"
 )
 
 type HealthStatus string

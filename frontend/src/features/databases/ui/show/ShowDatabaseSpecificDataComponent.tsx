@@ -3,6 +3,8 @@ import { ShowMariaDbSpecificDataComponent } from './ShowMariaDbSpecificDataCompo
 import { ShowMongoDbSpecificDataComponent } from './ShowMongoDbSpecificDataComponent';
 import { ShowMySqlSpecificDataComponent } from './ShowMySqlSpecificDataComponent';
 import { ShowPostgreSqlSpecificDataComponent } from './ShowPostgreSqlSpecificDataComponent';
+import { ShowRabbitmqSpecificDataComponent } from './ShowRabbitmqSpecificDataComponent';
+import { ShowRedisSpecificDataComponent } from './ShowRedisSpecificDataComponent';
 
 interface Props {
   database: Database;
@@ -18,6 +20,10 @@ export const ShowDatabaseSpecificDataComponent = ({ database }: Props) => {
       return <ShowMariaDbSpecificDataComponent database={database} />;
     case DatabaseType.MONGODB:
       return <ShowMongoDbSpecificDataComponent database={database} />;
+    case DatabaseType.REDIS:
+      return <ShowRedisSpecificDataComponent database={database} />;
+    case DatabaseType.RABBITMQ:
+      return <ShowRabbitmqSpecificDataComponent database={database} />;
     default:
       return null;
   }

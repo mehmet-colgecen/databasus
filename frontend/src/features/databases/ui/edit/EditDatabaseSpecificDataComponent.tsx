@@ -12,6 +12,8 @@ import { EditMariaDbSpecificDataComponent } from './EditMariaDbSpecificDataCompo
 import { EditMongoDbSpecificDataComponent } from './EditMongoDbSpecificDataComponent';
 import { EditMySqlSpecificDataComponent } from './EditMySqlSpecificDataComponent';
 import { EditPostgreSqlSpecificDataComponent } from './EditPostgreSqlSpecificDataComponent';
+import { EditRabbitmqSpecificDataComponent } from './EditRabbitmqSpecificDataComponent';
+import { EditRedisSpecificDataComponent } from './EditRedisSpecificDataComponent';
 
 interface Props {
   database: Database;
@@ -60,7 +62,10 @@ export const EditDatabaseSpecificDataComponent = ({
       databaseToSave.type === DatabaseType.POSTGRES &&
       databaseToSave.postgresql?.backupType === PostgresBackupType.WAL_V1;
 
-    if (isWalBackup) {
+    const isReadOnlyUserNotSupported =
+      databaseToSave.type === DatabaseType.REDIS || databaseToSave.type === DatabaseType.RABBITMQ;
+
+    if (isWalBackup || isReadOnlyUserNotSupported) {
       onSaved(databaseToSave);
       return;
     }
@@ -140,6 +145,10 @@ export const EditDatabaseSpecificDataComponent = ({
       return <EditMariaDbSpecificDataComponent {...commonProps} />;
     case DatabaseType.MONGODB:
       return <EditMongoDbSpecificDataComponent {...commonProps} />;
+    case DatabaseType.REDIS:
+      return <EditRedisSpecificDataComponent {...commonProps} />;
+    case DatabaseType.RABBITMQ:
+      return <EditRabbitmqSpecificDataComponent {...commonProps} />;
     default:
       return null;
   }

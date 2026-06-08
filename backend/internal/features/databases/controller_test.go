@@ -17,6 +17,8 @@ import (
 	"databasus-backend/internal/features/databases/databases/mariadb"
 	"databasus-backend/internal/features/databases/databases/mongodb"
 	"databasus-backend/internal/features/databases/databases/postgresql"
+	"databasus-backend/internal/features/databases/databases/rabbitmq"
+	"databasus-backend/internal/features/databases/databases/redis"
 	users_enums "databasus-backend/internal/features/users/enums"
 	users_middleware "databasus-backend/internal/features/users/middleware"
 	users_services "databasus-backend/internal/features/users/services"
@@ -971,6 +973,78 @@ func Test_DatabaseSensitiveDataLifecycle_AllTypes(t *testing.T) {
 				assert.Equal(t, "", database.Mongodb.Password)
 			},
 		},
+		{
+			name:         "Redis Database",
+			databaseType: DatabaseTypeRedis,
+			createDatabase: func(workspaceID uuid.UUID) *Database {
+				redisConfig := getTestRedisConfig()
+				return &Database{
+					WorkspaceID: &workspaceID,
+					Name:        "Test Redis Database",
+					Type:        DatabaseTypeRedis,
+					Redis:       redisConfig,
+				}
+			},
+			updateDatabase: func(workspaceID, databaseID uuid.UUID) *Database {
+				redisConfig := getTestRedisConfig()
+				redisConfig.Password = ""
+				return &Database{
+					ID:          databaseID,
+					WorkspaceID: &workspaceID,
+					Name:        "Updated Redis Database",
+					Type:        DatabaseTypeRedis,
+					Redis:       redisConfig,
+				}
+			},
+			verifySensitiveData: func(t *testing.T, database *Database) {
+				assert.True(t, strings.HasPrefix(database.Redis.Password, "enc:"),
+					"Password should be encrypted in database")
+
+				encryptor := encryption.GetFieldEncryptor()
+				decrypted, err := encryptor.Decrypt(database.Redis.Password)
+				assert.NoError(t, err)
+				assert.Equal(t, "testpassword", decrypted)
+			},
+			verifyHiddenData: func(t *testing.T, database *Database) {
+				assert.Equal(t, "", database.Redis.Password)
+			},
+		},
+		{
+			name:         "RabbitMQ Database",
+			databaseType: DatabaseTypeRabbitmq,
+			createDatabase: func(workspaceID uuid.UUID) *Database {
+				rabbitConfig := getTestRabbitmqConfig()
+				return &Database{
+					WorkspaceID: &workspaceID,
+					Name:        "Test RabbitMQ Database",
+					Type:        DatabaseTypeRabbitmq,
+					Rabbitmq:    rabbitConfig,
+				}
+			},
+			updateDatabase: func(workspaceID, databaseID uuid.UUID) *Database {
+				rabbitConfig := getTestRabbitmqConfig()
+				rabbitConfig.Password = ""
+				return &Database{
+					ID:          databaseID,
+					WorkspaceID: &workspaceID,
+					Name:        "Updated RabbitMQ Database",
+					Type:        DatabaseTypeRabbitmq,
+					Rabbitmq:    rabbitConfig,
+				}
+			},
+			verifySensitiveData: func(t *testing.T, database *Database) {
+				assert.True(t, strings.HasPrefix(database.Rabbitmq.Password, "enc:"),
+					"Password should be encrypted in database")
+
+				encryptor := encryption.GetFieldEncryptor()
+				decrypted, err := encryptor.Decrypt(database.Rabbitmq.Password)
+				assert.NoError(t, err)
+				assert.Equal(t, "testpassword", decrypted)
+			},
+			verifyHiddenData: func(t *testing.T, database *Database) {
+				assert.Equal(t, "", database.Rabbitmq.Password)
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -1506,5 +1580,25 @@ func getTestMongodbConfig() *mongodb.MongodbDatabase {
 		IsHttps:      false,
 		IsSrv:        false,
 		CpuCount:     1,
+	}
+}
+
+func getTestRedisConfig() *redis.RedisDatabase {
+	return &redis.RedisDatabase{
+		Host:     config.GetEnv().TestLocalhost,
+		Port:     6379,
+		Username: "",
+		Password: "testpassword",
+		IsTls:    false,
+	}
+}
+
+func getTestRabbitmqConfig() *rabbitmq.RabbitmqDatabase {
+	return &rabbitmq.RabbitmqDatabase{
+		Host:           config.GetEnv().TestLocalhost,
+		ManagementPort: 15672,
+		Username:       "guest",
+		Password:       "testpassword",
+		IsHttps:        false,
 	}
 }

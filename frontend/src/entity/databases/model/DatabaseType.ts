@@ -3,4 +3,6 @@ export enum DatabaseType {
   MYSQL = 'MYSQL',
   MARIADB = 'MARIADB',
   MONGODB = 'MONGODB',
+  REDIS = 'REDIS',
+  RABBITMQ = 'RABBITMQ',
 }

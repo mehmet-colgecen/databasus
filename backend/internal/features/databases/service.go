@@ -17,6 +17,8 @@ import (
 	"databasus-backend/internal/features/databases/databases/mongodb"
 	"databasus-backend/internal/features/databases/databases/mysql"
 	"databasus-backend/internal/features/databases/databases/postgresql"
+	"databasus-backend/internal/features/databases/databases/rabbitmq"
+	"databasus-backend/internal/features/databases/databases/redis"
 	"databasus-backend/internal/features/notifiers"
 	users_models "databasus-backend/internal/features/users/models"
 	workspaces_services "databasus-backend/internal/features/workspaces/services"
@@ -514,6 +516,32 @@ func (s *DatabaseService) CopyDatabase(
 				AuthDatabase: existingDatabase.Mongodb.AuthDatabase,
 				IsHttps:      existingDatabase.Mongodb.IsHttps,
 				CpuCount:     existingDatabase.Mongodb.CpuCount,
+			}
+		}
+	case DatabaseTypeRedis:
+		if existingDatabase.Redis != nil {
+			newDatabase.Redis = &redis.RedisDatabase{
+				ID:         uuid.Nil,
+				DatabaseID: nil,
+				Version:    existingDatabase.Redis.Version,
+				Host:       existingDatabase.Redis.Host,
+				Port:       existingDatabase.Redis.Port,
+				Username:   existingDatabase.Redis.Username,
+				Password:   existingDatabase.Redis.Password,
+				IsTls:      existingDatabase.Redis.IsTls,
+			}
+		}
+	case DatabaseTypeRabbitmq:
+		if existingDatabase.Rabbitmq != nil {
+			newDatabase.Rabbitmq = &rabbitmq.RabbitmqDatabase{
+				ID:             uuid.Nil,
+				DatabaseID:     nil,
+				Version:        existingDatabase.Rabbitmq.Version,
+				Host:           existingDatabase.Rabbitmq.Host,
+				ManagementPort: existingDatabase.Rabbitmq.ManagementPort,
+				Username:       existingDatabase.Rabbitmq.Username,
+				Password:       existingDatabase.Rabbitmq.Password,
+				IsHttps:        existingDatabase.Rabbitmq.IsHttps,
 			}
 		}
 	}

@@ -10,6 +10,8 @@ import (
 	"databasus-backend/internal/features/databases/databases/mariadb"
 	"databasus-backend/internal/features/databases/databases/mongodb"
 	"databasus-backend/internal/features/databases/databases/postgresql"
+	"databasus-backend/internal/features/databases/databases/rabbitmq"
+	"databasus-backend/internal/features/databases/databases/redis"
 	"databasus-backend/internal/features/notifiers"
 	"databasus-backend/internal/features/storages"
 	"databasus-backend/internal/storage"
@@ -79,6 +81,28 @@ func GetTestMongodbConfig() *mongodb.MongodbDatabase {
 		IsHttps:      false,
 		IsSrv:        false,
 		CpuCount:     1,
+	}
+}
+
+func GetTestRedisConfig() *redis.RedisDatabase {
+	return &redis.RedisDatabase{
+		Version:  "7",
+		Host:     config.GetEnv().TestLocalhost,
+		Port:     6379,
+		Username: "",
+		Password: "testpassword",
+		IsTls:    false,
+	}
+}
+
+func GetTestRabbitmqConfig() *rabbitmq.RabbitmqDatabase {
+	return &rabbitmq.RabbitmqDatabase{
+		Version:        "3",
+		Host:           config.GetEnv().TestLocalhost,
+		ManagementPort: 15672,
+		Username:       "guest",
+		Password:       "testpassword",
+		IsHttps:        false,
 	}
 }
 
@@ -162,6 +186,50 @@ func CreateTestMongodbDatabase(
 		Name:        "test-mongodb " + uuid.New().String(),
 		Type:        DatabaseTypeMongodb,
 		Mongodb:     GetTestMongodbConfig(),
+		Notifiers: []notifiers.Notifier{
+			*notifier,
+		},
+	}
+
+	database, err := databaseRepository.Save(database)
+	if err != nil {
+		panic(err)
+	}
+
+	return database
+}
+
+func CreateTestRedisDatabase(
+	workspaceID uuid.UUID,
+	notifier *notifiers.Notifier,
+) *Database {
+	database := &Database{
+		WorkspaceID: &workspaceID,
+		Name:        "test-redis " + uuid.New().String(),
+		Type:        DatabaseTypeRedis,
+		Redis:       GetTestRedisConfig(),
+		Notifiers: []notifiers.Notifier{
+			*notifier,
+		},
+	}
+
+	database, err := databaseRepository.Save(database)
+	if err != nil {
+		panic(err)
+	}
+
+	return database
+}
+
+func CreateTestRabbitmqDatabase(
+	workspaceID uuid.UUID,
+	notifier *notifiers.Notifier,
+) *Database {
+	database := &Database{
+		WorkspaceID: &workspaceID,
+		Name:        "test-rabbitmq " + uuid.New().String(),
+		Type:        DatabaseTypeRabbitmq,
+		Rabbitmq:    GetTestRabbitmqConfig(),
 		Notifiers: []notifiers.Notifier{
 			*notifier,
 		},

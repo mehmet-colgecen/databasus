@@ -346,6 +346,10 @@ func (c *BackupController) getBackupExtension(
 		return ".dump"
 	case databases.DatabaseTypeMongodb:
 		return ".archive"
+	case databases.DatabaseTypeRedis:
+		return ".rdb"
+	case databases.DatabaseTypeRabbitmq:
+		return ".definitions.json"
 	default:
 		return ".backup"
 	}

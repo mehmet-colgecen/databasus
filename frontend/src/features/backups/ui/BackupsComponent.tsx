@@ -465,17 +465,20 @@ export const BackupsComponent = ({
                     </Tooltip>
                   ))}
 
-                <Tooltip title="Restore from backup">
-                  <CloudUploadOutlined
-                    className="cursor-pointer"
-                    onClick={() => {
-                      setShowingRestoresBackupId(record.id);
-                    }}
-                    style={{
-                      color: '#155dfc',
-                    }}
-                  />
-                </Tooltip>
+                {database.type !== DatabaseType.REDIS &&
+                  database.type !== DatabaseType.RABBITMQ && (
+                    <Tooltip title="Restore from backup">
+                      <CloudUploadOutlined
+                        className="cursor-pointer"
+                        onClick={() => {
+                          setShowingRestoresBackupId(record.id);
+                        }}
+                        style={{
+                          color: '#155dfc',
+                        }}
+                      />
+                    </Tooltip>
+                  )}
 
                 <Tooltip
                   title={
@@ -487,7 +490,11 @@ export const BackupsComponent = ({
                           ? 'Download backup file. It can be restored manually via mariadb client (from SQL dump)'
                           : database.type === DatabaseType.MONGODB
                             ? 'Download backup file. It can be restored manually via mongorestore (from archive)'
-                            : 'Download backup file'
+                            : database.type === DatabaseType.REDIS
+                              ? 'Download backup file. It can be restored manually via redis-cli --rdb <file> or by placing it as the dump.rdb'
+                              : database.type === DatabaseType.RABBITMQ
+                                ? 'Download backup file. It is a RabbitMQ definitions JSON - import via Management UI or rabbitmqadmin'
+                                : 'Download backup file'
                   }
                 >
                   {downloadingBackupId === record.id ? (
