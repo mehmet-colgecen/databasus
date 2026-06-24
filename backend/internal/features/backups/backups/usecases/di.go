@@ -1,6 +1,7 @@
 package usecases
 
 import (
+	usecases_kubernetes "databasus-backend/internal/features/backups/backups/usecases/kubernetes"
 	usecases_mariadb "databasus-backend/internal/features/backups/backups/usecases/mariadb"
 	usecases_mongodb "databasus-backend/internal/features/backups/backups/usecases/mongodb"
 	usecases_mysql "databasus-backend/internal/features/backups/backups/usecases/mysql"
@@ -16,6 +17,7 @@ var createBackupUsecase = &CreateBackupUsecase{
 	usecases_mongodb.GetCreateMongodbBackupUsecase(),
 	usecases_redis.GetCreateRedisBackupUsecase(),
 	usecases_rabbitmq.GetCreateRabbitmqBackupUsecase(),
+	usecases_kubernetes.GetCreateKubernetesBackupUsecase(),
 }
 
 func GetCreateBackupUsecase() *CreateBackupUsecase {

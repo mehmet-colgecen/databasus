@@ -6,6 +6,7 @@ import (
 
 	common "databasus-backend/internal/features/backups/backups/common"
 	backups_core "databasus-backend/internal/features/backups/backups/core"
+	usecases_kubernetes "databasus-backend/internal/features/backups/backups/usecases/kubernetes"
 	usecases_mariadb "databasus-backend/internal/features/backups/backups/usecases/mariadb"
 	usecases_mongodb "databasus-backend/internal/features/backups/backups/usecases/mongodb"
 	usecases_mysql "databasus-backend/internal/features/backups/backups/usecases/mysql"
@@ -24,6 +25,7 @@ type CreateBackupUsecase struct {
 	CreateMongodbBackupUsecase    *usecases_mongodb.CreateMongodbBackupUsecase
 	CreateRedisBackupUsecase      *usecases_redis.CreateRedisBackupUsecase
 	CreateRabbitmqBackupUsecase   *usecases_rabbitmq.CreateRabbitmqBackupUsecase
+	CreateKubernetesBackupUsecase *usecases_kubernetes.CreateKubernetesBackupUsecase
 }
 
 func (uc *CreateBackupUsecase) Execute(
@@ -87,6 +89,16 @@ func (uc *CreateBackupUsecase) Execute(
 
 	case databases.DatabaseTypeRabbitmq:
 		return uc.CreateRabbitmqBackupUsecase.Execute(
+			ctx,
+			backup,
+			backupConfig,
+			database,
+			storage,
+			backupProgressListener,
+		)
+
+	case databases.DatabaseTypeKubernetes:
+		return uc.CreateKubernetesBackupUsecase.Execute(
 			ctx,
 			backup,
 			backupConfig,
