@@ -10,12 +10,12 @@ func Test_Validate(t *testing.T) {
 	testCases := []struct {
 		name      string
 		db        KubernetesDatabase
-		wantError bool
+		isInvalid bool
 	}{
 		{
 			name:      "no resource types is invalid",
 			db:        KubernetesDatabase{NamespaceScope: string(KubernetesNamespaceScopeAll)},
-			wantError: true,
+			isInvalid: true,
 		},
 		{
 			name: "all-scope with one resource type is valid",
@@ -23,7 +23,7 @@ func Test_Validate(t *testing.T) {
 				ResourceTypes:  []string{string(KubernetesResourceTypeSecret)},
 				NamespaceScope: string(KubernetesNamespaceScopeAll),
 			},
-			wantError: false,
+			isInvalid: false,
 		},
 		{
 			name: "specific-scope without namespaces is invalid",
@@ -31,7 +31,7 @@ func Test_Validate(t *testing.T) {
 				ResourceTypes:  []string{string(KubernetesResourceTypeConfigMap)},
 				NamespaceScope: string(KubernetesNamespaceScopeSpecific),
 			},
-			wantError: true,
+			isInvalid: true,
 		},
 		{
 			name: "specific-scope with namespaces is valid",
@@ -40,7 +40,7 @@ func Test_Validate(t *testing.T) {
 				NamespaceScope: string(KubernetesNamespaceScopeSpecific),
 				Namespaces:     []string{"prod"},
 			},
-			wantError: false,
+			isInvalid: false,
 		},
 		{
 			name: "unknown resource type is invalid",
@@ -48,7 +48,7 @@ func Test_Validate(t *testing.T) {
 				ResourceTypes:  []string{"PODS"},
 				NamespaceScope: string(KubernetesNamespaceScopeAll),
 			},
-			wantError: true,
+			isInvalid: true,
 		},
 		{
 			name: "unknown namespace scope is invalid",
@@ -56,20 +56,29 @@ func Test_Validate(t *testing.T) {
 				ResourceTypes:  []string{string(KubernetesResourceTypeSecret)},
 				NamespaceScope: "CLUSTER",
 			},
-			wantError: true,
+			isInvalid: true,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			err := tc.db.Validate()
-			if tc.wantError {
+			if tc.isInvalid {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
 			}
 		})
 	}
+}
+
+func Test_AfterFind_EmptyStringsYieldEmptySlices(t *testing.T) {
+	loaded := KubernetesDatabase{}
+
+	assert.NoError(t, loaded.AfterFind(nil))
+	assert.Equal(t, []string{}, loaded.ResourceTypes)
+	assert.Equal(t, []string{}, loaded.Namespaces)
+	assert.Equal(t, []string{}, loaded.ObjectNames)
 }
 
 func Test_BeforeSaveAfterFind_RoundTripsListColumns(t *testing.T) {
