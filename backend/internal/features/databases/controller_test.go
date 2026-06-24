@@ -14,6 +14,7 @@ import (
 
 	"databasus-backend/internal/config"
 	"databasus-backend/internal/features/audit_logs"
+	"databasus-backend/internal/features/databases/databases/kubernetes"
 	"databasus-backend/internal/features/databases/databases/mariadb"
 	"databasus-backend/internal/features/databases/databases/mongodb"
 	"databasus-backend/internal/features/databases/databases/postgresql"
@@ -1601,4 +1602,36 @@ func getTestRabbitmqConfig() *rabbitmq.RabbitmqDatabase {
 		Password:       "testpassword",
 		IsHttps:        false,
 	}
+}
+
+func Test_CreateKubernetesDatabase_RejectsEmptyResourceTypes(t *testing.T) {
+	database := &Database{
+		Name: "Invalid Kubernetes Database",
+		Type: DatabaseTypeKubernetes,
+		Kubernetes: &kubernetes.KubernetesDatabase{
+			NamespaceScope: string(kubernetes.KubernetesNamespaceScopeAll),
+			// ResourceTypes deliberately empty -> Validate() must reject.
+		},
+	}
+
+	err := database.Validate()
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "at least one resource type is required")
+}
+
+func Test_CreateKubernetesDatabase_RejectsSpecificScopeWithoutNamespaces(t *testing.T) {
+	database := &Database{
+		Name: "Invalid Kubernetes Database",
+		Type: DatabaseTypeKubernetes,
+		Kubernetes: &kubernetes.KubernetesDatabase{
+			ResourceTypes:  []string{string(kubernetes.KubernetesResourceTypeSecret)},
+			NamespaceScope: string(kubernetes.KubernetesNamespaceScopeSpecific),
+		},
+	}
+
+	err := database.Validate()
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "at least one namespace is required")
 }
