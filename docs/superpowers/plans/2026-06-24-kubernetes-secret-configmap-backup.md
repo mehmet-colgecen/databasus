@@ -796,7 +796,7 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 )
 
-func Test_StreamExport_AllNamespacesBothТypes(t *testing.T) {
+func Test_StreamExport_AllNamespacesBothTypes(t *testing.T) {
 	clientset := fake.NewSimpleClientset(
 		&corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "s1", Namespace: "prod", ResourceVersion: "9"}},
 		&corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: "c1", Namespace: "staging"}},
@@ -840,8 +840,6 @@ func Test_StreamExport_ObjectNameFilter(t *testing.T) {
 	assert.False(t, strings.Contains(out, "name: drop"))
 }
 ```
-> Note: rename `Test_StreamExport_AllNamespacesBothТypes` to ASCII `Test_StreamExport_AllNamespacesBothTypes` when typing (avoid the accidental Cyrillic character).
-
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cd backend && go test ./internal/features/databases/databases/kubernetes/ -run Test_StreamExport -v`
@@ -858,7 +856,6 @@ import (
 	"fmt"
 	"io"
 
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
@@ -983,10 +980,7 @@ func toNameFilter(names []string) map[string]struct{} {
 	}
 	return filter
 }
-
-var _ = corev1.Secret{} // keep corev1 import if referenced only in tests
 ```
-> Remove the trailing `var _ = corev1.Secret{}` line if `corev1` ends up referenced elsewhere; it exists only to avoid an unused-import error and `make lint` will flag it if redundant.
 
 - [ ] **Step 4: Run tests to verify they pass**
 
@@ -1628,7 +1622,7 @@ export const EditKubernetesSpecificDataComponent = ({
         <Alert
           className="mb-3"
           type="warning"
-          showMessage
+          showIcon
           message="Secrets contain sensitive data. Enable backup encryption in the next step so the exported values are not stored in plain base64."
         />
       )}
@@ -1713,7 +1707,6 @@ export const EditKubernetesSpecificDataComponent = ({
   );
 };
 ```
-> The `Alert` prop in Ant Design is `message` (not `showMessage`); remove the stray `showMessage` line if `pnpm lint`/tsc flags it — it is included above only as a visual cue and is not a valid prop.
 
 - [ ] **Step 3: Add the dispatcher case**
 
@@ -2015,7 +2008,7 @@ Expected: branch pushed; open a PR targeting `feature/redis-rabbitmq-backup-supp
 - Security note — Tasks 10 (UI warning), 13 (README). ✓
 - Testing (sanitizer unit, fake-clientset export, validation, helm smoke) — Tasks 4, 5, 8, 12. ✓
 
-**Placeholder scan:** No "TBD"/"handle edge cases"/"similar to". Each code step contains full code. Two inline caveats are flagged explicitly (the Ant `Alert` `message` prop; the accidental non-ASCII test name in Task 5 Step 1) so the implementer corrects them rather than copying blindly.
+**Placeholder scan:** No "TBD"/"handle edge cases"/"similar to". Each code step contains full code, corrected during pre-flight (ASCII test name, no unused `corev1` import in `export.go`, valid Ant `Alert` props).
 
 **Type consistency:** `KubernetesDatabase` field set is identical across model (Task 2), CopyDatabase (Task 6), and entity TS (Task 9: `resourceTypes`/`namespaceScope`/`namespaces`/`objectNames`/`version`). `streamExport`/`OpenExportStream` signatures match between Task 5 (definition) and Task 7 (caller). Usecase method `Execute(...)` signature matches the sibling redis/rabbitmq usecases and the dispatch call in Task 7. Enum string values (`SECRET`/`CONFIGMAP`/`ALL`/`SPECIFIC`) are consistent across backend, frontend, and Helm-irrelevant layers.
 
