@@ -112,6 +112,10 @@ func (k *KubernetesDatabase) GetRawDbSizeMb(
 	return 0, nil
 }
 
+// TestConnection is the authoritative in-cluster access gate: it hard-fails if
+// the backend cannot reach the API or lacks read access, so a misconfigured
+// ServiceAccount is caught at creation rather than at backup time. It also sets
+// k.Version for display.
 func (k *KubernetesDatabase) TestConnection(
 	logger *slog.Logger,
 	_ encryption.FieldEncryptor,

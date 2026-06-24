@@ -24,6 +24,9 @@ func buildInClusterClientset() (kubernetes.Interface, error) {
 	return clientset, nil
 }
 
+// detectServerVersion ignores the context because Discovery().ServerVersion()
+// does not accept one; the parameter exists for signature parity with the other
+// client helpers and for future use should the discovery client gain context support.
 func detectServerVersion(_ context.Context, clientset kubernetes.Interface) (string, error) {
 	versionInfo, err := clientset.Discovery().ServerVersion()
 	if err != nil {
@@ -58,6 +61,8 @@ func verifyReadAccess(
 				if _, err := clientset.CoreV1().ConfigMaps(namespace).List(ctx, listOptions); err != nil {
 					return fmt.Errorf("cannot list configmaps (namespace %q): %w", namespace, err)
 				}
+			default:
+				return fmt.Errorf("unsupported resource type %q: cannot verify read access", resourceType)
 			}
 		}
 	}

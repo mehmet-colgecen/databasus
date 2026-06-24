@@ -1,6 +1,7 @@
 package kubernetes
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -102,4 +103,47 @@ func Test_BeforeSaveAfterFind_RoundTripsListColumns(t *testing.T) {
 	assert.Equal(t, []string{"SECRET", "CONFIGMAP"}, loaded.ResourceTypes)
 	assert.Equal(t, []string{"prod", "staging"}, loaded.Namespaces)
 	assert.Equal(t, []string{"app-config"}, loaded.ObjectNames)
+}
+
+func Test_ResolveNamespaces(t *testing.T) {
+	testCases := []struct {
+		name               string
+		db                 KubernetesDatabase
+		expectedNamespaces []string
+		isError            bool
+	}{
+		{
+			name:               "ALL scope resolves to the all-namespaces sentinel",
+			db:                 KubernetesDatabase{NamespaceScope: string(KubernetesNamespaceScopeAll)},
+			expectedNamespaces: []string{""},
+		},
+		{
+			name: "SPECIFIC scope returns the configured list",
+			db: KubernetesDatabase{
+				NamespaceScope: string(KubernetesNamespaceScopeSpecific),
+				Namespaces:     []string{"prod", "staging"},
+			},
+			expectedNamespaces: []string{"prod", "staging"},
+		},
+		{
+			name: "SPECIFIC scope with no namespaces is an error",
+			db: KubernetesDatabase{
+				NamespaceScope: string(KubernetesNamespaceScopeSpecific),
+			},
+			isError: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			namespaces, err := resolveNamespaces(context.Background(), nil, &tc.db)
+			if tc.isError {
+				assert.Error(t, err)
+				return
+			}
+
+			assert.NoError(t, err)
+			assert.Equal(t, tc.expectedNamespaces, namespaces)
+		})
+	}
 }
