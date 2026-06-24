@@ -14,6 +14,8 @@ export const getDatabaseLogoFromType = (type: DatabaseType) => {
       return '/icons/databases/redis.svg';
     case DatabaseType.RABBITMQ:
       return '/icons/databases/rabbitmq.svg';
+    case DatabaseType.KUBERNETES:
+      return '/icons/databases/kubernetes.svg';
     default:
       return '';
   }

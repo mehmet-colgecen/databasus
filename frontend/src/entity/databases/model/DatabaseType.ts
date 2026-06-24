@@ -5,4 +5,5 @@ export enum DatabaseType {
   MONGODB = 'MONGODB',
   REDIS = 'REDIS',
   RABBITMQ = 'RABBITMQ',
+  KUBERNETES = 'KUBERNETES',
 }

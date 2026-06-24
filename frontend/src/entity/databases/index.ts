@@ -17,5 +17,8 @@ export { type RedisDatabase } from './model/redis/RedisDatabase';
 export { type RedisVersion } from './model/redis/RedisVersion';
 export { type RabbitmqDatabase } from './model/rabbitmq/RabbitmqDatabase';
 export { type RabbitmqVersion } from './model/rabbitmq/RabbitmqVersion';
+export { type KubernetesDatabase } from './model/kubernetes/KubernetesDatabase';
+export { KubernetesResourceType } from './model/kubernetes/KubernetesResourceType';
+export { type KubernetesNamespaceScope } from './model/kubernetes/KubernetesResourceType';
 export { type IsReadOnlyResponse } from './model/IsReadOnlyResponse';
 export { type CreateReadOnlyUserResponse } from './model/CreateReadOnlyUserResponse';
