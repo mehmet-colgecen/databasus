@@ -8,6 +8,7 @@ import {
   databaseApi,
 } from '../../../../entity/databases';
 import { CreateReadOnlyComponent } from './CreateReadOnlyComponent';
+import { EditKubernetesSpecificDataComponent } from './EditKubernetesSpecificDataComponent';
 import { EditMariaDbSpecificDataComponent } from './EditMariaDbSpecificDataComponent';
 import { EditMongoDbSpecificDataComponent } from './EditMongoDbSpecificDataComponent';
 import { EditMySqlSpecificDataComponent } from './EditMySqlSpecificDataComponent';
@@ -63,7 +64,9 @@ export const EditDatabaseSpecificDataComponent = ({
       databaseToSave.postgresql?.backupType === PostgresBackupType.WAL_V1;
 
     const isReadOnlyUserNotSupported =
-      databaseToSave.type === DatabaseType.REDIS || databaseToSave.type === DatabaseType.RABBITMQ;
+      databaseToSave.type === DatabaseType.REDIS ||
+      databaseToSave.type === DatabaseType.RABBITMQ ||
+      databaseToSave.type === DatabaseType.KUBERNETES;
 
     if (isWalBackup || isReadOnlyUserNotSupported) {
       onSaved(databaseToSave);
@@ -149,6 +152,8 @@ export const EditDatabaseSpecificDataComponent = ({
       return <EditRedisSpecificDataComponent {...commonProps} />;
     case DatabaseType.RABBITMQ:
       return <EditRabbitmqSpecificDataComponent {...commonProps} />;
+    case DatabaseType.KUBERNETES:
+      return <EditKubernetesSpecificDataComponent {...commonProps} />;
     default:
       return null;
   }

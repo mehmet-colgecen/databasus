@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import {
   type Database,
   DatabaseType,
+  type KubernetesDatabase,
   type MariadbDatabase,
   type MongodbDatabase,
   type MysqlDatabase,
@@ -34,6 +35,7 @@ const databaseTypeOptions = [
   { value: DatabaseType.MONGODB, label: 'MongoDB' },
   { value: DatabaseType.REDIS, label: 'Redis' },
   { value: DatabaseType.RABBITMQ, label: 'RabbitMQ' },
+  { value: DatabaseType.KUBERNETES, label: 'Kubernetes' },
 ];
 
 export const EditDatabaseBaseInfoComponent = ({
@@ -67,6 +69,7 @@ export const EditDatabaseBaseInfoComponent = ({
       mongodb: undefined,
       redis: undefined,
       rabbitmq: undefined,
+      kubernetes: undefined,
     };
 
     switch (newType) {
@@ -89,6 +92,16 @@ export const EditDatabaseBaseInfoComponent = ({
       case DatabaseType.RABBITMQ:
         updatedDatabase.rabbitmq =
           editingDatabase.rabbitmq ?? ({ managementPort: 15672 } as RabbitmqDatabase);
+        break;
+      case DatabaseType.KUBERNETES:
+        updatedDatabase.kubernetes =
+          editingDatabase.kubernetes ??
+          ({
+            resourceTypes: ['SECRET'],
+            namespaceScope: 'ALL',
+            namespaces: [],
+            objectNames: [],
+          } as KubernetesDatabase);
         break;
     }
 
