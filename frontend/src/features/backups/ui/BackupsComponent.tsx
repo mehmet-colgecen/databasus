@@ -466,7 +466,8 @@ export const BackupsComponent = ({
                   ))}
 
                 {database.type !== DatabaseType.REDIS &&
-                  database.type !== DatabaseType.RABBITMQ && (
+                  database.type !== DatabaseType.RABBITMQ &&
+                  database.type !== DatabaseType.KUBERNETES && (
                     <Tooltip title="Restore from backup">
                       <CloudUploadOutlined
                         className="cursor-pointer"
@@ -494,7 +495,9 @@ export const BackupsComponent = ({
                               ? 'Download backup file. It can be restored manually via redis-cli --rdb <file> or by placing it as the dump.rdb'
                               : database.type === DatabaseType.RABBITMQ
                                 ? 'Download backup file. It is a RabbitMQ definitions JSON - import via Management UI or rabbitmqadmin'
-                                : 'Download backup file'
+                                : database.type === DatabaseType.KUBERNETES
+                                  ? 'Download backup file. It is a sanitized multi-document YAML - restore manually via kubectl apply -f <file>'
+                                  : 'Download backup file'
                   }
                 >
                   {downloadingBackupId === record.id ? (

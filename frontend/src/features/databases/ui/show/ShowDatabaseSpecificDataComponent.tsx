@@ -1,4 +1,5 @@
 import { type Database, DatabaseType } from '../../../../entity/databases';
+import { ShowKubernetesSpecificDataComponent } from './ShowKubernetesSpecificDataComponent';
 import { ShowMariaDbSpecificDataComponent } from './ShowMariaDbSpecificDataComponent';
 import { ShowMongoDbSpecificDataComponent } from './ShowMongoDbSpecificDataComponent';
 import { ShowMySqlSpecificDataComponent } from './ShowMySqlSpecificDataComponent';
@@ -24,6 +25,8 @@ export const ShowDatabaseSpecificDataComponent = ({ database }: Props) => {
       return <ShowRedisSpecificDataComponent database={database} />;
     case DatabaseType.RABBITMQ:
       return <ShowRabbitmqSpecificDataComponent database={database} />;
+    case DatabaseType.KUBERNETES:
+      return <ShowKubernetesSpecificDataComponent database={database} />;
     default:
       return null;
   }
