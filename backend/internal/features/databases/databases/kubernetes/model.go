@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log/slog"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -109,4 +110,58 @@ func (k *KubernetesDatabase) GetRawDbSizeMb(
 	_ encryption.FieldEncryptor,
 ) (float64, error) {
 	return 0, nil
+}
+
+func (k *KubernetesDatabase) TestConnection(
+	logger *slog.Logger,
+	_ encryption.FieldEncryptor,
+) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	clientset, err := buildInClusterClientset()
+	if err != nil {
+		return err
+	}
+
+	version, err := detectServerVersion(ctx, clientset)
+	if err != nil {
+		return err
+	}
+	k.Version = version
+
+	if err := verifyReadAccess(ctx, clientset, k); err != nil {
+		return err
+	}
+
+	logger.Info("Kubernetes connection test passed", "server_version", version)
+
+	return nil
+}
+
+// PopulateDbData detects the server version on a best-effort basis. Failure to
+// reach the API (e.g. when the backend is run outside a cluster during local
+// development) is logged but does not block database creation; TestConnection
+// is the authoritative access check.
+func (k *KubernetesDatabase) PopulateDbData(
+	logger *slog.Logger,
+	_ encryption.FieldEncryptor,
+) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	clientset, err := buildInClusterClientset()
+	if err != nil {
+		logger.Warn("skipping Kubernetes version detection", "error", err)
+		return nil
+	}
+
+	version, err := detectServerVersion(ctx, clientset)
+	if err != nil {
+		logger.Warn("failed to detect Kubernetes version", "error", err)
+		return nil
+	}
+	k.Version = version
+
+	return nil
 }
