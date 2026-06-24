@@ -15,10 +15,12 @@ func Test_SanitizeObjectMeta_StripsServerFields(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:              "tls-cert",
 			Namespace:         "prod",
+			GenerateName:      "prefix-",
 			ResourceVersion:   "12345",
 			UID:               "abc-uid",
 			Generation:        7,
 			CreationTimestamp: metav1.NewTime(time.Unix(1000, 0)),
+			DeletionTimestamp: &metav1.Time{Time: time.Unix(2000, 0)},
 			ManagedFields:     []metav1.ManagedFieldsEntry{{Manager: "kubectl"}},
 			OwnerReferences:   []metav1.OwnerReference{{Name: "owner"}},
 			SelfLink:          "/api/v1/...",
@@ -43,6 +45,23 @@ func Test_SanitizeObjectMeta_StripsServerFields(t *testing.T) {
 	assert.Nil(t, secret.ManagedFields)
 	assert.Nil(t, secret.OwnerReferences)
 	assert.Empty(t, secret.SelfLink)
+	assert.Empty(t, secret.GenerateName)
+	assert.Nil(t, secret.DeletionTimestamp)
+}
+
+func Test_SanitizeObjectMeta_NilAnnotationsWhenOnlyLastAppliedConfig(t *testing.T) {
+	secret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "tls-cert",
+			Annotations: map[string]string{
+				"kubectl.kubernetes.io/last-applied-configuration": "{...}",
+			},
+		},
+	}
+
+	sanitizeObjectMeta(secret)
+
+	assert.Nil(t, secret.Annotations)
 }
 
 func Test_ToYAMLDocument_SetsTypeMetaForSecret(t *testing.T) {
@@ -71,6 +90,7 @@ func Test_ToYAMLDocument_SetsTypeMetaForConfigMap(t *testing.T) {
 	assert.NoError(t, err)
 
 	text := string(doc)
+	assert.True(t, strings.Contains(text, "apiVersion: v1"))
 	assert.True(t, strings.Contains(text, "kind: ConfigMap"))
 	assert.True(t, strings.Contains(text, "name: app-config"))
 }
