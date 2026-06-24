@@ -554,6 +554,8 @@ func (s *BackupService) getBackupExtension(dbType databases.DatabaseType) string
 		return ".rdb"
 	case databases.DatabaseTypeRabbitmq:
 		return ".definitions.json"
+	case databases.DatabaseTypeKubernetes:
+		return ".yaml"
 	default:
 		return ".backup"
 	}

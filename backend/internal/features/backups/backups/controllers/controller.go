@@ -350,6 +350,8 @@ func (c *BackupController) getBackupExtension(
 		return ".rdb"
 	case databases.DatabaseTypeRabbitmq:
 		return ".definitions.json"
+	case databases.DatabaseTypeKubernetes:
+		return ".yaml"
 	default:
 		return ".backup"
 	}
