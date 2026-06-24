@@ -272,6 +272,8 @@ Critical paths are covered by both unit and integration tests, run against real 
 
 Found a vulnerability? Report it via the GitHub Security tab. See [SECURITY.md](https://github.com/databasus/databasus?tab=security-ov-file#readme). Security reports are the highest-priority work queue. For runtime application security (AES-256-GCM at rest, zero-trust storage, encrypted secrets, read-only DB user by default) see [Enterprise-grade security](#-enterprise-grade-security) in the Features section above.
 
+- **Kubernetes backups use least-privilege, read-only RBAC.** The Helm chart provisions a ServiceAccount with a ClusterRole granting only `get`/`list` on `secrets`, `configmaps` and `namespaces`. This lets Databasus back up Secrets/ConfigMaps cluster-wide; because it can read every Secret in the cluster, restrict who can create Kubernetes sources and enable backup encryption for Secret exports. Disable entirely with `rbac.create=false` and `serviceAccount.create=false`.
+
 ---
 
 ## 📝 License
