@@ -200,6 +200,9 @@ require (
 	golang.org/x/time v0.15.0 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/validator.v2 v2.0.1 // indirect
+	k8s.io/api v0.31.0 // indirect
+	k8s.io/apimachinery v0.31.0 // indirect
+	k8s.io/client-go v0.31.0 // indirect
 	moul.io/http2curl/v2 v2.3.0 // indirect
 	sigs.k8s.io/yaml v1.6.0 // indirect
 	storj.io/common v0.0.0-20260225132117-99155641c30a // indirect
