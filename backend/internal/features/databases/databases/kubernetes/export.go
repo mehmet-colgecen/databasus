@@ -31,6 +31,9 @@ func (k *KubernetesDatabase) OpenExportStream(
 	return reader, reader, nil
 }
 
+// streamExport runs inside the OpenExportStream goroutine and returns any write
+// error so the caller can propagate it to the pipe via CloseWithError. Documents
+// are separated by "---" with no leading separator before the first one.
 func streamExport(
 	ctx context.Context,
 	clientset kubernetes.Interface,
@@ -126,6 +129,8 @@ func listObjects(
 	}
 }
 
+// toNameFilter returns nil when no names are configured, meaning "no filter —
+// pass all objects through"; the absence of a map is intentional, not a bug.
 func toNameFilter(names []string) map[string]struct{} {
 	if len(names) == 0 {
 		return nil

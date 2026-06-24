@@ -31,7 +31,8 @@ func Test_StreamExport_AllNamespacesBothTypes(t *testing.T) {
 	assert.True(t, strings.Contains(out, "name: s1"))
 	assert.True(t, strings.Contains(out, "kind: ConfigMap"))
 	assert.True(t, strings.Contains(out, "name: c1"))
-	assert.True(t, strings.Contains(out, "---"))
+	assert.False(t, strings.HasPrefix(out, "---"))
+	assert.Equal(t, 1, strings.Count(out, "\n---\n"))
 	assert.False(t, strings.Contains(out, "resourceVersion: \"9\""))
 }
 
