@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"databasus-backend/internal/features/databases/databases/kubernetes"
 	"databasus-backend/internal/features/databases/databases/mariadb"
 	"databasus-backend/internal/features/databases/databases/mongodb"
 	"databasus-backend/internal/features/databases/databases/mysql"
@@ -33,6 +34,7 @@ type Database struct {
 	Mongodb    *mongodb.MongodbDatabase       `json:"mongodb,omitzero"    gorm:"foreignKey:DatabaseID"`
 	Redis      *redis.RedisDatabase           `json:"redis,omitzero"      gorm:"foreignKey:DatabaseID"`
 	Rabbitmq   *rabbitmq.RabbitmqDatabase     `json:"rabbitmq,omitzero"   gorm:"foreignKey:DatabaseID"`
+	Kubernetes *kubernetes.KubernetesDatabase `json:"kubernetes,omitzero" gorm:"foreignKey:DatabaseID"`
 
 	Notifiers []notifiers.Notifier `json:"notifiers" gorm:"many2many:database_notifiers;"`
 
@@ -83,6 +85,11 @@ func (d *Database) Validate() error {
 			return errors.New("rabbitmq database is required")
 		}
 		return d.Rabbitmq.Validate()
+	case DatabaseTypeKubernetes:
+		if d.Kubernetes == nil {
+			return errors.New("kubernetes database is required")
+		}
+		return d.Kubernetes.Validate()
 	default:
 		return errors.New("invalid database type: " + string(d.Type))
 	}
@@ -164,6 +171,9 @@ func (d *Database) EncryptSensitiveFields(encryptor encryption.FieldEncryptor) e
 	if d.Rabbitmq != nil {
 		return d.Rabbitmq.EncryptSensitiveFields(encryptor)
 	}
+	if d.Kubernetes != nil {
+		return d.Kubernetes.EncryptSensitiveFields(encryptor)
+	}
 	return nil
 }
 
@@ -188,6 +198,9 @@ func (d *Database) PopulateDbData(
 	}
 	if d.Rabbitmq != nil {
 		return d.Rabbitmq.PopulateDbData(logger, encryptor)
+	}
+	if d.Kubernetes != nil {
+		return d.Kubernetes.PopulateDbData(logger, encryptor)
 	}
 	return nil
 }
@@ -222,6 +235,10 @@ func (d *Database) Update(incoming *Database) {
 		if d.Rabbitmq != nil && incoming.Rabbitmq != nil {
 			d.Rabbitmq.Update(incoming.Rabbitmq)
 		}
+	case DatabaseTypeKubernetes:
+		if d.Kubernetes != nil && incoming.Kubernetes != nil {
+			d.Kubernetes.Update(incoming.Kubernetes)
+		}
 	}
 }
 
@@ -245,6 +262,8 @@ func (d *Database) getSpecificDatabase() DatabaseConnector {
 		return d.Redis
 	case DatabaseTypeRabbitmq:
 		return d.Rabbitmq
+	case DatabaseTypeKubernetes:
+		return d.Kubernetes
 	}
 
 	panic("invalid database type: " + string(d.Type))

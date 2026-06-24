@@ -13,6 +13,7 @@ import (
 
 	"databasus-backend/internal/config"
 	audit_logs "databasus-backend/internal/features/audit_logs"
+	"databasus-backend/internal/features/databases/databases/kubernetes"
 	"databasus-backend/internal/features/databases/databases/mariadb"
 	"databasus-backend/internal/features/databases/databases/mongodb"
 	"databasus-backend/internal/features/databases/databases/mysql"
@@ -542,6 +543,18 @@ func (s *DatabaseService) CopyDatabase(
 				Username:       existingDatabase.Rabbitmq.Username,
 				Password:       existingDatabase.Rabbitmq.Password,
 				IsHttps:        existingDatabase.Rabbitmq.IsHttps,
+			}
+		}
+	case DatabaseTypeKubernetes:
+		if existingDatabase.Kubernetes != nil {
+			newDatabase.Kubernetes = &kubernetes.KubernetesDatabase{
+				ID:             uuid.Nil,
+				DatabaseID:     nil,
+				Version:        existingDatabase.Kubernetes.Version,
+				ResourceTypes:  existingDatabase.Kubernetes.ResourceTypes,
+				NamespaceScope: existingDatabase.Kubernetes.NamespaceScope,
+				Namespaces:     existingDatabase.Kubernetes.Namespaces,
+				ObjectNames:    existingDatabase.Kubernetes.ObjectNames,
 			}
 		}
 	}

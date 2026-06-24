@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
+	"databasus-backend/internal/features/databases/databases/kubernetes"
 	"databasus-backend/internal/features/databases/databases/mariadb"
 	"databasus-backend/internal/features/databases/databases/mongodb"
 	"databasus-backend/internal/features/databases/databases/mysql"
@@ -57,17 +58,22 @@ func (r *DatabaseRepository) Save(database *Database) (*Database, error) {
 				return errors.New("rabbitmq configuration is required for RabbitMQ database")
 			}
 			database.Rabbitmq.DatabaseID = &database.ID
+		case DatabaseTypeKubernetes:
+			if database.Kubernetes == nil {
+				return errors.New("kubernetes configuration is required for Kubernetes database")
+			}
+			database.Kubernetes.DatabaseID = &database.ID
 		}
 
 		if isNew {
 			if err := tx.Create(database).
-				Omit("Postgresql", "Mysql", "Mariadb", "Mongodb", "Redis", "Rabbitmq", "Notifiers").
+				Omit("Postgresql", "Mysql", "Mariadb", "Mongodb", "Redis", "Rabbitmq", "Kubernetes", "Notifiers").
 				Error; err != nil {
 				return err
 			}
 		} else {
 			if err := tx.Save(database).
-				Omit("Postgresql", "Mysql", "Mariadb", "Mongodb", "Redis", "Rabbitmq", "Notifiers").
+				Omit("Postgresql", "Mysql", "Mariadb", "Mongodb", "Redis", "Rabbitmq", "Kubernetes", "Notifiers").
 				Error; err != nil {
 				return err
 			}
@@ -146,6 +152,18 @@ func (r *DatabaseRepository) Save(database *Database) (*Database, error) {
 					return err
 				}
 			}
+		case DatabaseTypeKubernetes:
+			database.Kubernetes.DatabaseID = &database.ID
+			if database.Kubernetes.ID == uuid.Nil {
+				database.Kubernetes.ID = uuid.New()
+				if err := tx.Create(database.Kubernetes).Error; err != nil {
+					return err
+				}
+			} else {
+				if err := tx.Save(database.Kubernetes).Error; err != nil {
+					return err
+				}
+			}
 		}
 
 		if err := tx.
@@ -175,6 +193,7 @@ func (r *DatabaseRepository) FindByID(id uuid.UUID) (*Database, error) {
 		Preload("Mongodb").
 		Preload("Redis").
 		Preload("Rabbitmq").
+		Preload("Kubernetes").
 		Preload("Notifiers").
 		Where("id = ?", id).
 		First(&database).Error; err != nil {
@@ -195,6 +214,7 @@ func (r *DatabaseRepository) FindByWorkspaceID(workspaceID uuid.UUID) ([]*Databa
 		Preload("Mongodb").
 		Preload("Redis").
 		Preload("Rabbitmq").
+		Preload("Kubernetes").
 		Preload("Notifiers").
 		Where("workspace_id = ?", workspaceID).
 		Order("CASE WHEN health_status = 'UNAVAILABLE' THEN 1 WHEN health_status = 'AVAILABLE' THEN 2 WHEN health_status IS NULL THEN 3 ELSE 4 END, name ASC").
@@ -255,6 +275,12 @@ func (r *DatabaseRepository) Delete(id uuid.UUID) error {
 				Delete(&rabbitmq.RabbitmqDatabase{}).Error; err != nil {
 				return err
 			}
+		case DatabaseTypeKubernetes:
+			if err := tx.
+				Where("database_id = ?", id).
+				Delete(&kubernetes.KubernetesDatabase{}).Error; err != nil {
+				return err
+			}
 		}
 
 		if err := tx.Delete(&Database{}, id).Error; err != nil {
@@ -290,6 +316,7 @@ func (r *DatabaseRepository) GetAllDatabases() ([]*Database, error) {
 		Preload("Mongodb").
 		Preload("Redis").
 		Preload("Rabbitmq").
+		Preload("Kubernetes").
 		Preload("Notifiers").
 		Find(&databases).Error; err != nil {
 		return nil, err
