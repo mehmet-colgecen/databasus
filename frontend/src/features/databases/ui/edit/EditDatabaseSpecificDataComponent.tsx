@@ -8,10 +8,10 @@ import {
   databaseApi,
 } from '../../../../entity/databases';
 import { CreateReadOnlyComponent } from './CreateReadOnlyComponent';
-import { EditMariaDbSpecificDataComponent } from './EditMariaDbSpecificDataComponent';
-import { EditMongoDbSpecificDataComponent } from './EditMongoDbSpecificDataComponent';
-import { EditMySqlSpecificDataComponent } from './EditMySqlSpecificDataComponent';
+import { EditKubernetesSpecificDataComponent } from './EditKubernetesSpecificDataComponent';
 import { EditPostgreSqlSpecificDataComponent } from './EditPostgreSqlSpecificDataComponent';
+import { EditRabbitmqSpecificDataComponent } from './EditRabbitmqSpecificDataComponent';
+import { EditRedisSpecificDataComponent } from './EditRedisSpecificDataComponent';
 
 interface Props {
   database: Database;
@@ -60,7 +60,12 @@ export const EditDatabaseSpecificDataComponent = ({
       databaseToSave.type === DatabaseType.POSTGRES &&
       databaseToSave.postgresql?.backupType === PostgresBackupType.WAL_V1;
 
-    if (isWalBackup) {
+    const isReadOnlyUserNotSupported =
+      databaseToSave.type === DatabaseType.REDIS ||
+      databaseToSave.type === DatabaseType.RABBITMQ ||
+      databaseToSave.type === DatabaseType.KUBERNETES;
+
+    if (isWalBackup || isReadOnlyUserNotSupported) {
       onSaved(databaseToSave);
       return;
     }
@@ -134,12 +139,12 @@ export const EditDatabaseSpecificDataComponent = ({
   switch (editingDatabase.type) {
     case DatabaseType.POSTGRES:
       return <EditPostgreSqlSpecificDataComponent {...commonProps} isRestoreMode={isRestoreMode} />;
-    case DatabaseType.MYSQL:
-      return <EditMySqlSpecificDataComponent {...commonProps} />;
-    case DatabaseType.MARIADB:
-      return <EditMariaDbSpecificDataComponent {...commonProps} />;
-    case DatabaseType.MONGODB:
-      return <EditMongoDbSpecificDataComponent {...commonProps} />;
+    case DatabaseType.REDIS:
+      return <EditRedisSpecificDataComponent {...commonProps} />;
+    case DatabaseType.RABBITMQ:
+      return <EditRabbitmqSpecificDataComponent {...commonProps} />;
+    case DatabaseType.KUBERNETES:
+      return <EditKubernetesSpecificDataComponent {...commonProps} />;
     default:
       return null;
   }

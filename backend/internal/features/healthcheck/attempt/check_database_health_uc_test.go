@@ -10,6 +10,9 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	"databasus-backend/internal/features/databases"
+	"databasus-backend/internal/features/databases/databases/kubernetes"
+	"databasus-backend/internal/features/databases/databases/rabbitmq"
+	"databasus-backend/internal/features/databases/databases/redis"
 	healthcheck_config "databasus-backend/internal/features/healthcheck/config"
 	"databasus-backend/internal/features/notifiers"
 	"databasus-backend/internal/features/storages"
@@ -17,6 +20,31 @@ import (
 	users_testing "databasus-backend/internal/features/users/testing"
 	workspaces_testing "databasus-backend/internal/features/workspaces/testing"
 )
+
+func Test_ValidateDatabase_AcceptsAllSupportedTypes(t *testing.T) {
+	useCase := &CheckDatabaseHealthUseCase{}
+
+	supportedDatabases := map[string]*databases.Database{
+		"redis":      {Type: databases.DatabaseTypeRedis, Redis: &redis.RedisDatabase{}},
+		"rabbitmq":   {Type: databases.DatabaseTypeRabbitmq, Rabbitmq: &rabbitmq.RabbitmqDatabase{}},
+		"kubernetes": {Type: databases.DatabaseTypeKubernetes, Kubernetes: &kubernetes.KubernetesDatabase{}},
+	}
+
+	for name, database := range supportedDatabases {
+		t.Run(name, func(t *testing.T) {
+			assert.NoError(t, useCase.validateDatabase(database))
+		})
+	}
+}
+
+func Test_ValidateDatabase_RejectsUnknownType(t *testing.T) {
+	useCase := &CheckDatabaseHealthUseCase{}
+
+	err := useCase.validateDatabase(&databases.Database{Type: "ELASTICSEARCH"})
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "unsupported database type")
+}
 
 func Test_CheckDatabaseHealthUseCase(t *testing.T) {
 	user := users_testing.CreateTestUser(users_enums.UserRoleAdmin)

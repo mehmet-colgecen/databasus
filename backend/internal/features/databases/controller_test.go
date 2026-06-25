@@ -14,9 +14,10 @@ import (
 
 	"databasus-backend/internal/config"
 	"databasus-backend/internal/features/audit_logs"
-	"databasus-backend/internal/features/databases/databases/mariadb"
-	"databasus-backend/internal/features/databases/databases/mongodb"
+	"databasus-backend/internal/features/databases/databases/kubernetes"
 	"databasus-backend/internal/features/databases/databases/postgresql"
+	"databasus-backend/internal/features/databases/databases/rabbitmq"
+	"databasus-backend/internal/features/databases/databases/redis"
 	users_enums "databasus-backend/internal/features/users/enums"
 	users_middleware "databasus-backend/internal/features/users/middleware"
 	users_services "databasus-backend/internal/features/users/services"
@@ -328,7 +329,7 @@ func Test_UpdateDatabase_WhenDatabaseTypeChanged_ReturnsBadRequest(t *testing.T)
 	database := createTestDatabaseViaAPI("Test Database", workspace.ID, owner.Token, router)
 	defer RemoveTestDatabase(database)
 
-	database.Type = DatabaseTypeMysql
+	database.Type = DatabaseTypeRedis
 
 	testResp := test_utils.MakePostRequest(
 		t,
@@ -900,75 +901,75 @@ func Test_DatabaseSensitiveDataLifecycle_AllTypes(t *testing.T) {
 			},
 		},
 		{
-			name:         "MariaDB Database",
-			databaseType: DatabaseTypeMariadb,
+			name:         "Redis Database",
+			databaseType: DatabaseTypeRedis,
 			createDatabase: func(workspaceID uuid.UUID) *Database {
-				mariaConfig := getTestMariadbConfig()
+				redisConfig := getTestRedisConfig()
 				return &Database{
 					WorkspaceID: &workspaceID,
-					Name:        "Test MariaDB Database",
-					Type:        DatabaseTypeMariadb,
-					Mariadb:     mariaConfig,
+					Name:        "Test Redis Database",
+					Type:        DatabaseTypeRedis,
+					Redis:       redisConfig,
 				}
 			},
 			updateDatabase: func(workspaceID, databaseID uuid.UUID) *Database {
-				mariaConfig := getTestMariadbConfig()
-				mariaConfig.Password = ""
+				redisConfig := getTestRedisConfig()
+				redisConfig.Password = ""
 				return &Database{
 					ID:          databaseID,
 					WorkspaceID: &workspaceID,
-					Name:        "Updated MariaDB Database",
-					Type:        DatabaseTypeMariadb,
-					Mariadb:     mariaConfig,
+					Name:        "Updated Redis Database",
+					Type:        DatabaseTypeRedis,
+					Redis:       redisConfig,
 				}
 			},
 			verifySensitiveData: func(t *testing.T, database *Database) {
-				assert.True(t, strings.HasPrefix(database.Mariadb.Password, "enc:"),
+				assert.True(t, strings.HasPrefix(database.Redis.Password, "enc:"),
 					"Password should be encrypted in database")
 
 				encryptor := encryption.GetFieldEncryptor()
-				decrypted, err := encryptor.Decrypt(database.Mariadb.Password)
+				decrypted, err := encryptor.Decrypt(database.Redis.Password)
 				assert.NoError(t, err)
 				assert.Equal(t, "testpassword", decrypted)
 			},
 			verifyHiddenData: func(t *testing.T, database *Database) {
-				assert.Equal(t, "", database.Mariadb.Password)
+				assert.Equal(t, "", database.Redis.Password)
 			},
 		},
 		{
-			name:         "MongoDB Database",
-			databaseType: DatabaseTypeMongodb,
+			name:         "RabbitMQ Database",
+			databaseType: DatabaseTypeRabbitmq,
 			createDatabase: func(workspaceID uuid.UUID) *Database {
-				mongoConfig := getTestMongodbConfig()
+				rabbitConfig := getTestRabbitmqConfig()
 				return &Database{
 					WorkspaceID: &workspaceID,
-					Name:        "Test MongoDB Database",
-					Type:        DatabaseTypeMongodb,
-					Mongodb:     mongoConfig,
+					Name:        "Test RabbitMQ Database",
+					Type:        DatabaseTypeRabbitmq,
+					Rabbitmq:    rabbitConfig,
 				}
 			},
 			updateDatabase: func(workspaceID, databaseID uuid.UUID) *Database {
-				mongoConfig := getTestMongodbConfig()
-				mongoConfig.Password = ""
+				rabbitConfig := getTestRabbitmqConfig()
+				rabbitConfig.Password = ""
 				return &Database{
 					ID:          databaseID,
 					WorkspaceID: &workspaceID,
-					Name:        "Updated MongoDB Database",
-					Type:        DatabaseTypeMongodb,
-					Mongodb:     mongoConfig,
+					Name:        "Updated RabbitMQ Database",
+					Type:        DatabaseTypeRabbitmq,
+					Rabbitmq:    rabbitConfig,
 				}
 			},
 			verifySensitiveData: func(t *testing.T, database *Database) {
-				assert.True(t, strings.HasPrefix(database.Mongodb.Password, "enc:"),
+				assert.True(t, strings.HasPrefix(database.Rabbitmq.Password, "enc:"),
 					"Password should be encrypted in database")
 
 				encryptor := encryption.GetFieldEncryptor()
-				decrypted, err := encryptor.Decrypt(database.Mongodb.Password)
+				decrypted, err := encryptor.Decrypt(database.Rabbitmq.Password)
 				assert.NoError(t, err)
-				assert.Equal(t, "rootpassword", decrypted)
+				assert.Equal(t, "testpassword", decrypted)
 			},
 			verifyHiddenData: func(t *testing.T, database *Database) {
-				assert.Equal(t, "", database.Mongodb.Password)
+				assert.Equal(t, "", database.Rabbitmq.Password)
 			},
 		},
 	}
@@ -1462,49 +1463,54 @@ func createReadOnlyUserViaAPI(
 	return &response
 }
 
-func getTestMariadbConfig() *mariadb.MariadbDatabase {
-	env := config.GetEnv()
-	portStr := env.TestMariadb1011Port
-	if portStr == "" {
-		portStr = "33111"
-	}
-	port, err := strconv.Atoi(portStr)
-	if err != nil {
-		panic(fmt.Sprintf("Failed to parse TEST_MARIADB_1011_PORT: %v", err))
-	}
-
-	testDbName := "testdb"
-	return &mariadb.MariadbDatabase{
-		Version:  tools.MariadbVersion1011,
+func getTestRedisConfig() *redis.RedisDatabase {
+	return &redis.RedisDatabase{
 		Host:     config.GetEnv().TestLocalhost,
-		Port:     port,
-		Username: "testuser",
+		Port:     6379,
+		Username: "",
 		Password: "testpassword",
-		Database: &testDbName,
+		IsTls:    false,
 	}
 }
 
-func getTestMongodbConfig() *mongodb.MongodbDatabase {
-	env := config.GetEnv()
-	portStr := env.TestMongodb70Port
-	if portStr == "" {
-		portStr = "27070"
+func getTestRabbitmqConfig() *rabbitmq.RabbitmqDatabase {
+	return &rabbitmq.RabbitmqDatabase{
+		Host:           config.GetEnv().TestLocalhost,
+		ManagementPort: 15672,
+		Username:       "guest",
+		Password:       "testpassword",
+		IsHttps:        false,
 	}
-	port, err := strconv.Atoi(portStr)
-	if err != nil {
-		panic(fmt.Sprintf("Failed to parse TEST_MONGODB_70_PORT: %v", err))
+}
+
+func Test_CreateKubernetesDatabase_RejectsEmptyResourceTypes(t *testing.T) {
+	database := &Database{
+		Name: "Invalid Kubernetes Database",
+		Type: DatabaseTypeKubernetes,
+		Kubernetes: &kubernetes.KubernetesDatabase{
+			NamespaceScope: string(kubernetes.KubernetesNamespaceScopeAll),
+			// ResourceTypes deliberately empty -> Validate() must reject.
+		},
 	}
 
-	return &mongodb.MongodbDatabase{
-		Version:      tools.MongodbVersion7,
-		Host:         config.GetEnv().TestLocalhost,
-		Port:         &port,
-		Username:     "root",
-		Password:     "rootpassword",
-		Database:     "testdb",
-		AuthDatabase: "admin",
-		IsHttps:      false,
-		IsSrv:        false,
-		CpuCount:     1,
+	err := database.Validate()
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "at least one resource type is required")
+}
+
+func Test_CreateKubernetesDatabase_RejectsSpecificScopeWithoutNamespaces(t *testing.T) {
+	database := &Database{
+		Name: "Invalid Kubernetes Database",
+		Type: DatabaseTypeKubernetes,
+		Kubernetes: &kubernetes.KubernetesDatabase{
+			ResourceTypes:  []string{string(kubernetes.KubernetesResourceTypeSecret)},
+			NamespaceScope: string(kubernetes.KubernetesNamespaceScopeSpecific),
+		},
 	}
+
+	err := database.Validate()
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "at least one namespace is required")
 }

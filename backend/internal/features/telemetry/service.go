@@ -276,21 +276,6 @@ func buildDatabaseEntry(db *databases.Database) (DatabaseEntry, bool) {
 			return DatabaseEntry{}, false
 		}
 		return DatabaseEntry{Type: string(db.Type), Version: string(db.Postgresql.Version)}, true
-	case databases.DatabaseTypeMysql:
-		if db.Mysql == nil {
-			return DatabaseEntry{}, false
-		}
-		return DatabaseEntry{Type: string(db.Type), Version: string(db.Mysql.Version)}, true
-	case databases.DatabaseTypeMariadb:
-		if db.Mariadb == nil {
-			return DatabaseEntry{}, false
-		}
-		return DatabaseEntry{Type: string(db.Type), Version: string(db.Mariadb.Version)}, true
-	case databases.DatabaseTypeMongodb:
-		if db.Mongodb == nil {
-			return DatabaseEntry{}, false
-		}
-		return DatabaseEntry{Type: string(db.Type), Version: string(db.Mongodb.Version)}, true
 	}
 
 	return DatabaseEntry{}, false

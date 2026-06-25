@@ -8,10 +8,10 @@ import (
 
 	"github.com/google/uuid"
 
-	"databasus-backend/internal/features/databases/databases/mariadb"
-	"databasus-backend/internal/features/databases/databases/mongodb"
-	"databasus-backend/internal/features/databases/databases/mysql"
+	"databasus-backend/internal/features/databases/databases/kubernetes"
 	"databasus-backend/internal/features/databases/databases/postgresql"
+	"databasus-backend/internal/features/databases/databases/rabbitmq"
+	"databasus-backend/internal/features/databases/databases/redis"
 	"databasus-backend/internal/features/notifiers"
 	"databasus-backend/internal/util/encryption"
 )
@@ -26,9 +26,9 @@ type Database struct {
 	Type        DatabaseType `json:"type"        gorm:"column:type;type:text;not null"`
 
 	Postgresql *postgresql.PostgresqlDatabase `json:"postgresql,omitzero" gorm:"foreignKey:DatabaseID"`
-	Mysql      *mysql.MysqlDatabase           `json:"mysql,omitzero"      gorm:"foreignKey:DatabaseID"`
-	Mariadb    *mariadb.MariadbDatabase       `json:"mariadb,omitzero"    gorm:"foreignKey:DatabaseID"`
-	Mongodb    *mongodb.MongodbDatabase       `json:"mongodb,omitzero"    gorm:"foreignKey:DatabaseID"`
+	Redis      *redis.RedisDatabase           `json:"redis,omitzero"      gorm:"foreignKey:DatabaseID"`
+	Rabbitmq   *rabbitmq.RabbitmqDatabase     `json:"rabbitmq,omitzero"   gorm:"foreignKey:DatabaseID"`
+	Kubernetes *kubernetes.KubernetesDatabase `json:"kubernetes,omitzero" gorm:"foreignKey:DatabaseID"`
 
 	Notifiers []notifiers.Notifier `json:"notifiers" gorm:"many2many:database_notifiers;"`
 
@@ -54,21 +54,21 @@ func (d *Database) Validate() error {
 			return errors.New("postgresql database is required")
 		}
 		return d.Postgresql.Validate()
-	case DatabaseTypeMysql:
-		if d.Mysql == nil {
-			return errors.New("mysql database is required")
+	case DatabaseTypeRedis:
+		if d.Redis == nil {
+			return errors.New("redis database is required")
 		}
-		return d.Mysql.Validate()
-	case DatabaseTypeMariadb:
-		if d.Mariadb == nil {
-			return errors.New("mariadb database is required")
+		return d.Redis.Validate()
+	case DatabaseTypeRabbitmq:
+		if d.Rabbitmq == nil {
+			return errors.New("rabbitmq database is required")
 		}
-		return d.Mariadb.Validate()
-	case DatabaseTypeMongodb:
-		if d.Mongodb == nil {
-			return errors.New("mongodb database is required")
+		return d.Rabbitmq.Validate()
+	case DatabaseTypeKubernetes:
+		if d.Kubernetes == nil {
+			return errors.New("kubernetes database is required")
 		}
-		return d.Mongodb.Validate()
+		return d.Kubernetes.Validate()
 	default:
 		return errors.New("invalid database type: " + string(d.Type))
 	}
@@ -116,12 +116,6 @@ func (d *Database) IsUserReadOnly(
 	switch d.Type {
 	case DatabaseTypePostgres:
 		return d.Postgresql.IsUserReadOnly(ctx, logger, encryptor)
-	case DatabaseTypeMysql:
-		return d.Mysql.IsUserReadOnly(ctx, logger, encryptor)
-	case DatabaseTypeMariadb:
-		return d.Mariadb.IsUserReadOnly(ctx, logger, encryptor)
-	case DatabaseTypeMongodb:
-		return d.Mongodb.IsUserReadOnly(ctx, logger, encryptor)
 	default:
 		return false, nil, errors.New("read-only check not supported for this database type")
 	}
@@ -135,14 +129,14 @@ func (d *Database) EncryptSensitiveFields(encryptor encryption.FieldEncryptor) e
 	if d.Postgresql != nil {
 		return d.Postgresql.EncryptSensitiveFields(encryptor)
 	}
-	if d.Mysql != nil {
-		return d.Mysql.EncryptSensitiveFields(encryptor)
+	if d.Redis != nil {
+		return d.Redis.EncryptSensitiveFields(encryptor)
 	}
-	if d.Mariadb != nil {
-		return d.Mariadb.EncryptSensitiveFields(encryptor)
+	if d.Rabbitmq != nil {
+		return d.Rabbitmq.EncryptSensitiveFields(encryptor)
 	}
-	if d.Mongodb != nil {
-		return d.Mongodb.EncryptSensitiveFields(encryptor)
+	if d.Kubernetes != nil {
+		return d.Kubernetes.EncryptSensitiveFields(encryptor)
 	}
 	return nil
 }
@@ -154,14 +148,14 @@ func (d *Database) PopulateDbData(
 	if d.Postgresql != nil {
 		return d.Postgresql.PopulateDbData(logger, encryptor)
 	}
-	if d.Mysql != nil {
-		return d.Mysql.PopulateDbData(logger, encryptor)
+	if d.Redis != nil {
+		return d.Redis.PopulateDbData(logger, encryptor)
 	}
-	if d.Mariadb != nil {
-		return d.Mariadb.PopulateDbData(logger, encryptor)
+	if d.Rabbitmq != nil {
+		return d.Rabbitmq.PopulateDbData(logger, encryptor)
 	}
-	if d.Mongodb != nil {
-		return d.Mongodb.PopulateDbData(logger, encryptor)
+	if d.Kubernetes != nil {
+		return d.Kubernetes.PopulateDbData(logger, encryptor)
 	}
 	return nil
 }
@@ -176,17 +170,17 @@ func (d *Database) Update(incoming *Database) {
 		if d.Postgresql != nil && incoming.Postgresql != nil {
 			d.Postgresql.Update(incoming.Postgresql)
 		}
-	case DatabaseTypeMysql:
-		if d.Mysql != nil && incoming.Mysql != nil {
-			d.Mysql.Update(incoming.Mysql)
+	case DatabaseTypeRedis:
+		if d.Redis != nil && incoming.Redis != nil {
+			d.Redis.Update(incoming.Redis)
 		}
-	case DatabaseTypeMariadb:
-		if d.Mariadb != nil && incoming.Mariadb != nil {
-			d.Mariadb.Update(incoming.Mariadb)
+	case DatabaseTypeRabbitmq:
+		if d.Rabbitmq != nil && incoming.Rabbitmq != nil {
+			d.Rabbitmq.Update(incoming.Rabbitmq)
 		}
-	case DatabaseTypeMongodb:
-		if d.Mongodb != nil && incoming.Mongodb != nil {
-			d.Mongodb.Update(incoming.Mongodb)
+	case DatabaseTypeKubernetes:
+		if d.Kubernetes != nil && incoming.Kubernetes != nil {
+			d.Kubernetes.Update(incoming.Kubernetes)
 		}
 	}
 }
@@ -201,12 +195,12 @@ func (d *Database) getSpecificDatabase() DatabaseConnector {
 	switch d.Type {
 	case DatabaseTypePostgres:
 		return d.Postgresql
-	case DatabaseTypeMysql:
-		return d.Mysql
-	case DatabaseTypeMariadb:
-		return d.Mariadb
-	case DatabaseTypeMongodb:
-		return d.Mongodb
+	case DatabaseTypeRedis:
+		return d.Redis
+	case DatabaseTypeRabbitmq:
+		return d.Rabbitmq
+	case DatabaseTypeKubernetes:
+		return d.Kubernetes
 	}
 
 	panic("invalid database type: " + string(d.Type))

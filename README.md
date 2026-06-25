@@ -1,14 +1,11 @@
 <div align="center">
   <img src="assets/logo.svg" alt="Databasus Logo" width="250"/>
 
-  <h3>PostgreSQL backup tool (with MySQL\MariaDB and MongoDB support)</h3>
+  <h3>PostgreSQL backup tool (with Redis, RabbitMQ, and Kubernetes support)</h3>
   <p>Databasus is a free, open source and self-hosted tool to backup databases (primarily PostgreSQL). Make backups with different storages (S3, Google Drive, FTP, etc.) and notifications about progress (Slack, Discord, Telegram, etc.). With focus on Point-In-Time Recovery and restore verification</p>
   
   <!-- Badges -->
    [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-  [![MySQL](https://img.shields.io/badge/MySQL-4479A1?logo=mysql&logoColor=white)](https://www.mysql.com/)
-  [![MariaDB](https://img.shields.io/badge/MariaDB-003545?logo=mariadb&logoColor=white)](https://mariadb.org/)
-  [![MongoDB](https://img.shields.io/badge/MongoDB-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/)
   <br />
   [![Apache 2.0 License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
   [![Docker Pulls](https://img.shields.io/docker/pulls/databasus/databasus?color=brightgreen)](https://hub.docker.com/r/databasus/databasus)
@@ -40,9 +37,9 @@
 ### 💾 **Supported databases**
 
 - **PostgreSQL**: 12, 13, 14, 15, 16, 17 and 18
-- **MySQL**: 5.7, 8 and 9
-- **MariaDB**: 10, 11 and 12
-- **MongoDB**: 4.2+, 5, 6, 7 and 8
+- **Redis**: RDB snapshots
+- **RabbitMQ**: definitions (exchanges, queues, bindings)
+- **Kubernetes**: Secrets and ConfigMaps
 
 ### 🔄 **Scheduled backups**
 
@@ -271,6 +268,8 @@ Container images are scanned with Trivy on every build. A separate Trivy pass on
 Critical paths are covered by both unit and integration tests, run against real database containers for every supported engine and major version. Restore is the path that matters most for a backup tool, so we test it explicitly: every PR runs full backup-then-restore cycles against those same real containers, verifying that backups can actually be restored end-to-end, not just written successfully. The rest of the CI/CD pipeline runs lint, type-check, the full test suite, image smoke tests and multi-architecture builds on every PR. A release only ships if all of it passes.
 
 Found a vulnerability? Report it via the GitHub Security tab. See [SECURITY.md](https://github.com/databasus/databasus?tab=security-ov-file#readme). Security reports are the highest-priority work queue. For runtime application security (AES-256-GCM at rest, zero-trust storage, encrypted secrets, read-only DB user by default) see [Enterprise-grade security](#-enterprise-grade-security) in the Features section above.
+
+- **Kubernetes backups use least-privilege, read-only RBAC.** The Helm chart provisions a ServiceAccount with a ClusterRole granting only `get`/`list` on `secrets`, `configmaps` and `namespaces`. This lets Databasus back up Secrets/ConfigMaps cluster-wide; because it can read every Secret in the cluster, restrict who can create Kubernetes sources and enable backup encryption for Secret exports. Disable entirely with `rbac.create=false` and `serviceAccount.create=false`.
 
 ---
 

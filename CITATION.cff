@@ -28,9 +28,6 @@ keywords:
   - pg
   - system-administration
   - database-backup
-  - mysql
-  - mongodb
-  - mariadb
 license: Apache-2.0
 version: 2.21.0
 date-released: "2026-01-05"

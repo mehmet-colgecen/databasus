@@ -47,22 +47,6 @@ func Test_RunPendingBackups_ByDatabaseType_OnlySchedulesNonAgentManagedBackups(t
 			isBackupExpected:  false,
 			needsBackuperNode: false,
 		},
-		{
-			name: "MariaDB - backup runs",
-			createDatabase: func(workspaceID uuid.UUID, _ *storages.Storage, notifier *notifiers.Notifier) *databases.Database {
-				return databases.CreateTestMariadbDatabase(workspaceID, notifier)
-			},
-			isBackupExpected:  true,
-			needsBackuperNode: true,
-		},
-		{
-			name: "MongoDB - backup runs",
-			createDatabase: func(workspaceID uuid.UUID, _ *storages.Storage, notifier *notifiers.Notifier) *databases.Database {
-				return databases.CreateTestMongodbDatabase(workspaceID, notifier)
-			},
-			isBackupExpected:  true,
-			needsBackuperNode: true,
-		},
 	}
 
 	for _, tc := range testCases {

@@ -24,17 +24,6 @@ const DB_SIZE_COMMANDS = [
     label: 'PostgreSQL',
     code: `SELECT pg_size_pretty(pg_database_size(current_database()));`,
   },
-  {
-    label: 'MySQL / MariaDB',
-    code: `SELECT table_schema AS 'Database',
-  ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS 'Size (MB)'
-FROM information_schema.tables
-GROUP BY table_schema;`,
-  },
-  {
-    label: 'MongoDB',
-    code: `db.stats(1024 * 1024)  // size in MB`,
-  },
 ];
 
 const POLL_INTERVAL_MS = 3000;

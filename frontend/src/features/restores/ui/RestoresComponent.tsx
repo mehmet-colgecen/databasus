@@ -43,21 +43,12 @@ const clearCredentials = <T extends DatabaseCredentials>(db: T | undefined): T |
 const createInitialEditingDatabase = (database: Database): Database => ({
   ...database,
   postgresql: clearCredentials(database.postgresql),
-  mysql: clearCredentials(database.mysql),
-  mariadb: clearCredentials(database.mariadb),
-  mongodb: clearCredentials(database.mongodb),
 });
 
 const getRestorePayload = (database: Database, editingDatabase: Database) => {
   switch (database.type) {
     case DatabaseType.POSTGRES:
       return { postgresql: editingDatabase.postgresql };
-    case DatabaseType.MYSQL:
-      return { mysql: editingDatabase.mysql };
-    case DatabaseType.MARIADB:
-      return { mariadb: editingDatabase.mariadb };
-    case DatabaseType.MONGODB:
-      return { mongodb: editingDatabase.mongodb };
     default:
       return {};
   }

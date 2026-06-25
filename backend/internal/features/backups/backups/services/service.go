@@ -544,12 +544,14 @@ func (s *BackupService) generateBackupFilename(
 
 func (s *BackupService) getBackupExtension(dbType databases.DatabaseType) string {
 	switch dbType {
-	case databases.DatabaseTypeMysql, databases.DatabaseTypeMariadb:
-		return ".sql.zst"
 	case databases.DatabaseTypePostgres:
 		return ".dump"
-	case databases.DatabaseTypeMongodb:
-		return ".archive"
+	case databases.DatabaseTypeRedis:
+		return ".rdb"
+	case databases.DatabaseTypeRabbitmq:
+		return ".definitions.json"
+	case databases.DatabaseTypeKubernetes:
+		return ".yaml"
 	default:
 		return ".backup"
 	}

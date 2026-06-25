@@ -2,8 +2,8 @@
 
 # Image configuration
 image:
-  repository: databasus/databasus
-  tag: null
+  repository: platform360infras.azurecr.io/databasus
+  tag: "3.42.0"
   # When set, overrides `tag` and pins to an immutable digest (e.g. "sha256:abc...").
   digest: ""
   pullPolicy: Always
@@ -12,6 +12,18 @@ imagePullSecrets: []
 
 # StatefulSet configuration
 replicaCount: 1
+
+# ServiceAccount used by the Databasus pod. Required for Kubernetes
+# secret/configmap backups (in-cluster API access).
+serviceAccount:
+  create: true
+  name: ""
+
+# Cluster-wide read-only RBAC for Kubernetes secret/configmap backups.
+# Grants get/list on secrets, configmaps and namespaces across the cluster.
+# Set create: false to disable the feature and drop the ClusterRole.
+rbac:
+  create: true
 
 # RootCA setup, need name of secret in same namespace
 customRootCA: ""

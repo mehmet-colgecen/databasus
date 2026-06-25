@@ -196,9 +196,6 @@ func (n *RestorerNode) MakeRestore(restoreID uuid.UUID) {
 	restoringToDB := &databases.Database{
 		Type:       database.Type,
 		Postgresql: dbCache.PostgresqlDatabase,
-		Mysql:      dbCache.MysqlDatabase,
-		Mariadb:    dbCache.MariadbDatabase,
-		Mongodb:    dbCache.MongodbDatabase,
 	}
 
 	if err := restoringToDB.PopulateDbData(n.logger, n.fieldEncryptor); err != nil {

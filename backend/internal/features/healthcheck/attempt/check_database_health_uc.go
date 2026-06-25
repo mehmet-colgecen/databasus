@@ -184,17 +184,17 @@ func (uc *CheckDatabaseHealthUseCase) validateDatabase(
 		if database.Postgresql == nil {
 			return fmt.Errorf("database Postgresql config is not set")
 		}
-	case databases.DatabaseTypeMysql:
-		if database.Mysql == nil {
-			return fmt.Errorf("database MySQL config is not set")
+	case databases.DatabaseTypeRedis:
+		if database.Redis == nil {
+			return fmt.Errorf("database Redis config is not set")
 		}
-	case databases.DatabaseTypeMariadb:
-		if database.Mariadb == nil {
-			return fmt.Errorf("database MariaDB config is not set")
+	case databases.DatabaseTypeRabbitmq:
+		if database.Rabbitmq == nil {
+			return fmt.Errorf("database RabbitMQ config is not set")
 		}
-	case databases.DatabaseTypeMongodb:
-		if database.Mongodb == nil {
-			return fmt.Errorf("database MongoDB config is not set")
+	case databases.DatabaseTypeKubernetes:
+		if database.Kubernetes == nil {
+			return fmt.Errorf("database Kubernetes config is not set")
 		}
 	default:
 		return fmt.Errorf("unsupported database type: %s", database.Type)

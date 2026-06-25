@@ -4,10 +4,11 @@ import { useEffect, useState } from 'react';
 import {
   type Database,
   DatabaseType,
-  type MariadbDatabase,
-  type MongodbDatabase,
-  type MysqlDatabase,
+  type KubernetesDatabase,
+  type KubernetesNamespaceScope,
   type PostgresqlDatabase,
+  type RabbitmqDatabase,
+  type RedisDatabase,
   databaseApi,
   getDatabaseLogoFromType,
 } from '../../../../entity/databases';
@@ -27,9 +28,9 @@ interface Props {
 
 const databaseTypeOptions = [
   { value: DatabaseType.POSTGRES, label: 'PostgreSQL' },
-  { value: DatabaseType.MYSQL, label: 'MySQL' },
-  { value: DatabaseType.MARIADB, label: 'MariaDB' },
-  { value: DatabaseType.MONGODB, label: 'MongoDB' },
+  { value: DatabaseType.REDIS, label: 'Redis' },
+  { value: DatabaseType.RABBITMQ, label: 'RabbitMQ' },
+  { value: DatabaseType.KUBERNETES, label: 'Kubernetes' },
 ];
 
 export const EditDatabaseBaseInfoComponent = ({
@@ -58,9 +59,9 @@ export const EditDatabaseBaseInfoComponent = ({
       ...editingDatabase,
       type: newType,
       postgresql: undefined,
-      mysql: undefined,
-      mariadb: undefined,
-      mongodb: undefined,
+      redis: undefined,
+      rabbitmq: undefined,
+      kubernetes: undefined,
     };
 
     switch (newType) {
@@ -68,14 +69,22 @@ export const EditDatabaseBaseInfoComponent = ({
         updatedDatabase.postgresql =
           editingDatabase.postgresql ?? ({ cpuCount: 1 } as PostgresqlDatabase);
         break;
-      case DatabaseType.MYSQL:
-        updatedDatabase.mysql = editingDatabase.mysql ?? ({} as MysqlDatabase);
+      case DatabaseType.REDIS:
+        updatedDatabase.redis = editingDatabase.redis ?? ({ port: 6379 } as RedisDatabase);
         break;
-      case DatabaseType.MARIADB:
-        updatedDatabase.mariadb = editingDatabase.mariadb ?? ({} as MariadbDatabase);
+      case DatabaseType.RABBITMQ:
+        updatedDatabase.rabbitmq =
+          editingDatabase.rabbitmq ?? ({ managementPort: 15672 } as RabbitmqDatabase);
         break;
-      case DatabaseType.MONGODB:
-        updatedDatabase.mongodb = editingDatabase.mongodb ?? ({ cpuCount: 1 } as MongodbDatabase);
+      case DatabaseType.KUBERNETES:
+        updatedDatabase.kubernetes =
+          editingDatabase.kubernetes ??
+          ({
+            resourceTypes: ['SECRET'],
+            namespaceScope: 'ALL' as KubernetesNamespaceScope,
+            namespaces: [] as string[],
+            objectNames: [] as string[],
+          } as KubernetesDatabase);
         break;
     }
 

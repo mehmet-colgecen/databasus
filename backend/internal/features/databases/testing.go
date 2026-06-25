@@ -7,9 +7,9 @@ import (
 	"github.com/google/uuid"
 
 	"databasus-backend/internal/config"
-	"databasus-backend/internal/features/databases/databases/mariadb"
-	"databasus-backend/internal/features/databases/databases/mongodb"
 	"databasus-backend/internal/features/databases/databases/postgresql"
+	"databasus-backend/internal/features/databases/databases/rabbitmq"
+	"databasus-backend/internal/features/databases/databases/redis"
 	"databasus-backend/internal/features/notifiers"
 	"databasus-backend/internal/features/storages"
 	"databasus-backend/internal/storage"
@@ -35,50 +35,25 @@ func GetTestPostgresConfig() *postgresql.PostgresqlDatabase {
 	}
 }
 
-func GetTestMariadbConfig() *mariadb.MariadbDatabase {
-	env := config.GetEnv()
-	portStr := env.TestMariadb1011Port
-	if portStr == "" {
-		portStr = "33111"
-	}
-	port, err := strconv.Atoi(portStr)
-	if err != nil {
-		panic(fmt.Sprintf("Failed to parse TEST_MARIADB_1011_PORT: %v", err))
-	}
-
-	testDbName := "testdb"
-	return &mariadb.MariadbDatabase{
-		Version:  tools.MariadbVersion1011,
+func GetTestRedisConfig() *redis.RedisDatabase {
+	return &redis.RedisDatabase{
+		Version:  "7",
 		Host:     config.GetEnv().TestLocalhost,
-		Port:     port,
-		Username: "testuser",
+		Port:     6379,
+		Username: "",
 		Password: "testpassword",
-		Database: &testDbName,
+		IsTls:    false,
 	}
 }
 
-func GetTestMongodbConfig() *mongodb.MongodbDatabase {
-	env := config.GetEnv()
-	portStr := env.TestMongodb70Port
-	if portStr == "" {
-		portStr = "27070"
-	}
-	port, err := strconv.Atoi(portStr)
-	if err != nil {
-		panic(fmt.Sprintf("Failed to parse TEST_MONGODB_70_PORT: %v", err))
-	}
-
-	return &mongodb.MongodbDatabase{
-		Version:      tools.MongodbVersion7,
-		Host:         config.GetEnv().TestLocalhost,
-		Port:         &port,
-		Username:     "root",
-		Password:     "rootpassword",
-		Database:     "testdb",
-		AuthDatabase: "admin",
-		IsHttps:      false,
-		IsSrv:        false,
-		CpuCount:     1,
+func GetTestRabbitmqConfig() *rabbitmq.RabbitmqDatabase {
+	return &rabbitmq.RabbitmqDatabase{
+		Version:        "3",
+		Host:           config.GetEnv().TestLocalhost,
+		ManagementPort: 15672,
+		Username:       "guest",
+		Password:       "testpassword",
+		IsHttps:        false,
 	}
 }
 
@@ -131,15 +106,15 @@ func CreateTestPostgresWalDatabase(
 	return database
 }
 
-func CreateTestMariadbDatabase(
+func CreateTestRedisDatabase(
 	workspaceID uuid.UUID,
 	notifier *notifiers.Notifier,
 ) *Database {
 	database := &Database{
 		WorkspaceID: &workspaceID,
-		Name:        "test-mariadb " + uuid.New().String(),
-		Type:        DatabaseTypeMariadb,
-		Mariadb:     GetTestMariadbConfig(),
+		Name:        "test-redis " + uuid.New().String(),
+		Type:        DatabaseTypeRedis,
+		Redis:       GetTestRedisConfig(),
 		Notifiers: []notifiers.Notifier{
 			*notifier,
 		},
@@ -153,15 +128,15 @@ func CreateTestMariadbDatabase(
 	return database
 }
 
-func CreateTestMongodbDatabase(
+func CreateTestRabbitmqDatabase(
 	workspaceID uuid.UUID,
 	notifier *notifiers.Notifier,
 ) *Database {
 	database := &Database{
 		WorkspaceID: &workspaceID,
-		Name:        "test-mongodb " + uuid.New().String(),
-		Type:        DatabaseTypeMongodb,
-		Mongodb:     GetTestMongodbConfig(),
+		Name:        "test-rabbitmq " + uuid.New().String(),
+		Type:        DatabaseTypeRabbitmq,
+		Rabbitmq:    GetTestRabbitmqConfig(),
 		Notifiers: []notifiers.Notifier{
 			*notifier,
 		},

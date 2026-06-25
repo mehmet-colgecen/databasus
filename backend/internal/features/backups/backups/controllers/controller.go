@@ -339,13 +339,15 @@ func (c *BackupController) getBackupExtension(
 	dbType databases.DatabaseType,
 ) string {
 	switch dbType {
-	case databases.DatabaseTypeMysql, databases.DatabaseTypeMariadb:
-		return ".sql.zst"
 	case databases.DatabaseTypePostgres:
 		// PostgreSQL custom format
 		return ".dump"
-	case databases.DatabaseTypeMongodb:
-		return ".archive"
+	case databases.DatabaseTypeRedis:
+		return ".rdb"
+	case databases.DatabaseTypeRabbitmq:
+		return ".definitions.json"
+	case databases.DatabaseTypeKubernetes:
+		return ".yaml"
 	default:
 		return ".backup"
 	}

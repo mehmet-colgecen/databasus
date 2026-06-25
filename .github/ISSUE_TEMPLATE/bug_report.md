@@ -16,7 +16,7 @@ It is displayed in the bottom left corner of the Databasus UI. Please attach scr
 
 ## Database type and version (optional, for DB-related bugs)
 
-<!-- e.g. PostgreSQL 16 in Docker, MySQL 8.0 installed on server, MariaDB 11.4 in AWS Cloud -->
+<!-- e.g. PostgreSQL 16 in Docker, Redis 7 in AWS Cloud -->
 
 ## Describe the bug (please write manually, do not ask AI to summarize)
 

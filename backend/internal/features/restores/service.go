@@ -163,9 +163,6 @@ func (s *RestoreService) RestoreBackupWithAuth(
 		RestoreDurationMs:  0,
 		FailMessage:        nil,
 		PostgresqlDatabase: requestDTO.PostgresqlDatabase,
-		MysqlDatabase:      requestDTO.MysqlDatabase,
-		MariadbDatabase:    requestDTO.MariadbDatabase,
-		MongodbDatabase:    requestDTO.MongodbDatabase,
 	}
 
 	if err := s.restoreRepository.Save(&restore); err != nil {
@@ -175,9 +172,6 @@ func (s *RestoreService) RestoreBackupWithAuth(
 	// Prepare database cache with credentials from the request
 	dbCache := &restoring.RestoreDatabaseCache{
 		PostgresqlDatabase: requestDTO.PostgresqlDatabase,
-		MysqlDatabase:      requestDTO.MysqlDatabase,
-		MariadbDatabase:    requestDTO.MariadbDatabase,
-		MongodbDatabase:    requestDTO.MongodbDatabase,
 	}
 
 	// Trigger restore via scheduler
@@ -255,35 +249,8 @@ func (s *RestoreService) validateVersionCompatibility(
 	requestDTO restores_core.RestoreBackupRequest,
 ) error {
 	// populate version
-	if requestDTO.MariadbDatabase != nil {
-		err := requestDTO.MariadbDatabase.PopulateVersion(
-			s.logger,
-			s.fieldEncryptor,
-		)
-		if err != nil {
-			return err
-		}
-	}
-	if requestDTO.MysqlDatabase != nil {
-		err := requestDTO.MysqlDatabase.PopulateVersion(
-			s.logger,
-			s.fieldEncryptor,
-		)
-		if err != nil {
-			return err
-		}
-	}
 	if requestDTO.PostgresqlDatabase != nil {
 		err := requestDTO.PostgresqlDatabase.PopulateVersion(
-			s.logger,
-			s.fieldEncryptor,
-		)
-		if err != nil {
-			return err
-		}
-	}
-	if requestDTO.MongodbDatabase != nil {
-		err := requestDTO.MongodbDatabase.PopulateVersion(
 			s.logger,
 			s.fieldEncryptor,
 		)
@@ -304,42 +271,6 @@ func (s *RestoreService) validateVersionCompatibility(
 			return errors.New(`backup database version is higher than restore database version. ` +
 				`Should be restored to the same version as the backup database or higher. ` +
 				`For example, you can restore PG 15 backup to PG 15, 16 or higher. But cannot restore to 14 and lower`)
-		}
-	case databases.DatabaseTypeMysql:
-		if requestDTO.MysqlDatabase == nil {
-			return errors.New("mysql database configuration is required for restore")
-		}
-		if tools.IsMysqlBackupVersionHigherThanRestoreVersion(
-			backupDatabase.Mysql.Version,
-			requestDTO.MysqlDatabase.Version,
-		) {
-			return errors.New(`backup database version is higher than restore database version. ` +
-				`Should be restored to the same version as the backup database or higher. ` +
-				`For example, you can restore MySQL 8.0 backup to MySQL 8.0, 8.4 or higher. But cannot restore to 5.7`)
-		}
-	case databases.DatabaseTypeMariadb:
-		if requestDTO.MariadbDatabase == nil {
-			return errors.New("mariadb database configuration is required for restore")
-		}
-		if tools.IsMariadbBackupVersionHigherThanRestoreVersion(
-			backupDatabase.Mariadb.Version,
-			requestDTO.MariadbDatabase.Version,
-		) {
-			return errors.New(`backup database version is higher than restore database version. ` +
-				`Should be restored to the same version as the backup database or higher. ` +
-				`For example, you can restore MariaDB 10.11 backup to MariaDB 10.11, 11.4 or higher. But cannot restore to 10.6`)
-		}
-	case databases.DatabaseTypeMongodb:
-		if requestDTO.MongodbDatabase == nil {
-			return errors.New("mongodb database configuration is required for restore")
-		}
-		if tools.IsMongodbBackupVersionHigherThanRestoreVersion(
-			backupDatabase.Mongodb.Version,
-			requestDTO.MongodbDatabase.Version,
-		) {
-			return errors.New(`backup database version is higher than restore database version. ` +
-				`Should be restored to the same version as the backup database or higher. ` +
-				`For example, you can restore MongoDB 6.0 backup to MongoDB 6.0, 7.0 or higher. But cannot restore to 5.0`)
 		}
 	}
 

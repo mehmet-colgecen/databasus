@@ -465,28 +465,32 @@ export const BackupsComponent = ({
                     </Tooltip>
                   ))}
 
-                <Tooltip title="Restore from backup">
-                  <CloudUploadOutlined
-                    className="cursor-pointer"
-                    onClick={() => {
-                      setShowingRestoresBackupId(record.id);
-                    }}
-                    style={{
-                      color: '#155dfc',
-                    }}
-                  />
-                </Tooltip>
+                {database.type !== DatabaseType.REDIS &&
+                  database.type !== DatabaseType.RABBITMQ &&
+                  database.type !== DatabaseType.KUBERNETES && (
+                    <Tooltip title="Restore from backup">
+                      <CloudUploadOutlined
+                        className="cursor-pointer"
+                        onClick={() => {
+                          setShowingRestoresBackupId(record.id);
+                        }}
+                        style={{
+                          color: '#155dfc',
+                        }}
+                      />
+                    </Tooltip>
+                  )}
 
                 <Tooltip
                   title={
                     database.type === DatabaseType.POSTGRES
                       ? 'Download backup file. It can be restored manually via pg_restore (from custom format)'
-                      : database.type === DatabaseType.MYSQL
-                        ? 'Download backup file. It can be restored manually via mysql client (from SQL dump)'
-                        : database.type === DatabaseType.MARIADB
-                          ? 'Download backup file. It can be restored manually via mariadb client (from SQL dump)'
-                          : database.type === DatabaseType.MONGODB
-                            ? 'Download backup file. It can be restored manually via mongorestore (from archive)'
+                      : database.type === DatabaseType.REDIS
+                        ? 'Download backup file. It can be restored manually via redis-cli --rdb <file> or by placing it as the dump.rdb'
+                        : database.type === DatabaseType.RABBITMQ
+                          ? 'Download backup file. It is a RabbitMQ definitions JSON - import via Management UI or rabbitmqadmin'
+                          : database.type === DatabaseType.KUBERNETES
+                            ? 'Download backup file. It is a sanitized multi-document YAML - restore manually via kubectl apply -f <file>'
                             : 'Download backup file'
                   }
                 >

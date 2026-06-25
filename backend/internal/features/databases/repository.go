@@ -6,10 +6,10 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	"databasus-backend/internal/features/databases/databases/mariadb"
-	"databasus-backend/internal/features/databases/databases/mongodb"
-	"databasus-backend/internal/features/databases/databases/mysql"
+	"databasus-backend/internal/features/databases/databases/kubernetes"
 	"databasus-backend/internal/features/databases/databases/postgresql"
+	"databasus-backend/internal/features/databases/databases/rabbitmq"
+	"databasus-backend/internal/features/databases/databases/redis"
 	"databasus-backend/internal/storage"
 )
 
@@ -30,32 +30,32 @@ func (r *DatabaseRepository) Save(database *Database) (*Database, error) {
 				return errors.New("postgresql configuration is required for PostgreSQL database")
 			}
 			database.Postgresql.DatabaseID = &database.ID
-		case DatabaseTypeMysql:
-			if database.Mysql == nil {
-				return errors.New("mysql configuration is required for MySQL database")
+		case DatabaseTypeRedis:
+			if database.Redis == nil {
+				return errors.New("redis configuration is required for Redis database")
 			}
-			database.Mysql.DatabaseID = &database.ID
-		case DatabaseTypeMariadb:
-			if database.Mariadb == nil {
-				return errors.New("mariadb configuration is required for MariaDB database")
+			database.Redis.DatabaseID = &database.ID
+		case DatabaseTypeRabbitmq:
+			if database.Rabbitmq == nil {
+				return errors.New("rabbitmq configuration is required for RabbitMQ database")
 			}
-			database.Mariadb.DatabaseID = &database.ID
-		case DatabaseTypeMongodb:
-			if database.Mongodb == nil {
-				return errors.New("mongodb configuration is required for MongoDB database")
+			database.Rabbitmq.DatabaseID = &database.ID
+		case DatabaseTypeKubernetes:
+			if database.Kubernetes == nil {
+				return errors.New("kubernetes configuration is required for Kubernetes database")
 			}
-			database.Mongodb.DatabaseID = &database.ID
+			database.Kubernetes.DatabaseID = &database.ID
 		}
 
 		if isNew {
 			if err := tx.Create(database).
-				Omit("Postgresql", "Mysql", "Mariadb", "Mongodb", "Notifiers").
+				Omit("Postgresql", "Redis", "Rabbitmq", "Kubernetes", "Notifiers").
 				Error; err != nil {
 				return err
 			}
 		} else {
 			if err := tx.Save(database).
-				Omit("Postgresql", "Mysql", "Mariadb", "Mongodb", "Notifiers").
+				Omit("Postgresql", "Redis", "Rabbitmq", "Kubernetes", "Notifiers").
 				Error; err != nil {
 				return err
 			}
@@ -74,39 +74,39 @@ func (r *DatabaseRepository) Save(database *Database) (*Database, error) {
 					return err
 				}
 			}
-		case DatabaseTypeMysql:
-			database.Mysql.DatabaseID = &database.ID
-			if database.Mysql.ID == uuid.Nil {
-				database.Mysql.ID = uuid.New()
-				if err := tx.Create(database.Mysql).Error; err != nil {
+		case DatabaseTypeRedis:
+			database.Redis.DatabaseID = &database.ID
+			if database.Redis.ID == uuid.Nil {
+				database.Redis.ID = uuid.New()
+				if err := tx.Create(database.Redis).Error; err != nil {
 					return err
 				}
 			} else {
-				if err := tx.Save(database.Mysql).Error; err != nil {
+				if err := tx.Save(database.Redis).Error; err != nil {
 					return err
 				}
 			}
-		case DatabaseTypeMariadb:
-			database.Mariadb.DatabaseID = &database.ID
-			if database.Mariadb.ID == uuid.Nil {
-				database.Mariadb.ID = uuid.New()
-				if err := tx.Create(database.Mariadb).Error; err != nil {
+		case DatabaseTypeRabbitmq:
+			database.Rabbitmq.DatabaseID = &database.ID
+			if database.Rabbitmq.ID == uuid.Nil {
+				database.Rabbitmq.ID = uuid.New()
+				if err := tx.Create(database.Rabbitmq).Error; err != nil {
 					return err
 				}
 			} else {
-				if err := tx.Save(database.Mariadb).Error; err != nil {
+				if err := tx.Save(database.Rabbitmq).Error; err != nil {
 					return err
 				}
 			}
-		case DatabaseTypeMongodb:
-			database.Mongodb.DatabaseID = &database.ID
-			if database.Mongodb.ID == uuid.Nil {
-				database.Mongodb.ID = uuid.New()
-				if err := tx.Create(database.Mongodb).Error; err != nil {
+		case DatabaseTypeKubernetes:
+			database.Kubernetes.DatabaseID = &database.ID
+			if database.Kubernetes.ID == uuid.Nil {
+				database.Kubernetes.ID = uuid.New()
+				if err := tx.Create(database.Kubernetes).Error; err != nil {
 					return err
 				}
 			} else {
-				if err := tx.Save(database.Mongodb).Error; err != nil {
+				if err := tx.Save(database.Kubernetes).Error; err != nil {
 					return err
 				}
 			}
@@ -134,9 +134,9 @@ func (r *DatabaseRepository) FindByID(id uuid.UUID) (*Database, error) {
 	if err := storage.
 		GetDb().
 		Preload("Postgresql").
-		Preload("Mysql").
-		Preload("Mariadb").
-		Preload("Mongodb").
+		Preload("Redis").
+		Preload("Rabbitmq").
+		Preload("Kubernetes").
 		Preload("Notifiers").
 		Where("id = ?", id).
 		First(&database).Error; err != nil {
@@ -152,9 +152,9 @@ func (r *DatabaseRepository) FindByWorkspaceID(workspaceID uuid.UUID) ([]*Databa
 	if err := storage.
 		GetDb().
 		Preload("Postgresql").
-		Preload("Mysql").
-		Preload("Mariadb").
-		Preload("Mongodb").
+		Preload("Redis").
+		Preload("Rabbitmq").
+		Preload("Kubernetes").
 		Preload("Notifiers").
 		Where("workspace_id = ?", workspaceID).
 		Order("CASE WHEN health_status = 'UNAVAILABLE' THEN 1 WHEN health_status = 'AVAILABLE' THEN 2 WHEN health_status IS NULL THEN 3 ELSE 4 END, name ASC").
@@ -185,22 +185,22 @@ func (r *DatabaseRepository) Delete(id uuid.UUID) error {
 				Delete(&postgresql.PostgresqlDatabase{}).Error; err != nil {
 				return err
 			}
-		case DatabaseTypeMysql:
+		case DatabaseTypeRedis:
 			if err := tx.
 				Where("database_id = ?", id).
-				Delete(&mysql.MysqlDatabase{}).Error; err != nil {
+				Delete(&redis.RedisDatabase{}).Error; err != nil {
 				return err
 			}
-		case DatabaseTypeMariadb:
+		case DatabaseTypeRabbitmq:
 			if err := tx.
 				Where("database_id = ?", id).
-				Delete(&mariadb.MariadbDatabase{}).Error; err != nil {
+				Delete(&rabbitmq.RabbitmqDatabase{}).Error; err != nil {
 				return err
 			}
-		case DatabaseTypeMongodb:
+		case DatabaseTypeKubernetes:
 			if err := tx.
 				Where("database_id = ?", id).
-				Delete(&mongodb.MongodbDatabase{}).Error; err != nil {
+				Delete(&kubernetes.KubernetesDatabase{}).Error; err != nil {
 				return err
 			}
 		}
@@ -233,9 +233,9 @@ func (r *DatabaseRepository) GetAllDatabases() ([]*Database, error) {
 	if err := storage.
 		GetDb().
 		Preload("Postgresql").
-		Preload("Mysql").
-		Preload("Mariadb").
-		Preload("Mongodb").
+		Preload("Redis").
+		Preload("Rabbitmq").
+		Preload("Kubernetes").
 		Preload("Notifiers").
 		Find(&databases).Error; err != nil {
 		return nil, err

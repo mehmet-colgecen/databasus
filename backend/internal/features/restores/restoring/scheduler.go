@@ -111,9 +111,6 @@ func (s *RestoresScheduler) StartRestore(restoreID uuid.UUID, dbCache *RestoreDa
 		// Create cache DTO from restore (may be nil if not in DB)
 		dbCache = &RestoreDatabaseCache{
 			PostgresqlDatabase: restore.PostgresqlDatabase,
-			MysqlDatabase:      restore.MysqlDatabase,
-			MariadbDatabase:    restore.MariadbDatabase,
-			MongodbDatabase:    restore.MongodbDatabase,
 		}
 	}
 

@@ -69,7 +69,7 @@ func Test_ExecuteJob_WhenPgMajorUnsupported_ReportsFailedWithoutExitCode(t *test
 	r := newTestRunner(apiClient, okSpawner(), &fakeRestorer{}, &fakeStats{}, newFakeRegistrar())
 
 	job := postgresJob()
-	job.Database.Type = "MYSQL"
+	job.Database.Type = "UNSUPPORTED"
 
 	r.executeJob(t.Context(), job)
 

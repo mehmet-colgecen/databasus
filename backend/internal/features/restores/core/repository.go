@@ -15,12 +15,12 @@ func (r *RestoreRepository) Save(restore *Restore) error {
 	if isNew {
 		restore.ID = uuid.New()
 		return db.Create(restore).
-			Omit("Backup", "PostgresqlDatabase", "MysqlDatabase", "MariadbDatabase", "MongodbDatabase").
+			Omit("Backup", "PostgresqlDatabase").
 			Error
 	}
 
 	return db.Save(restore).
-		Omit("Backup", "PostgresqlDatabase", "MysqlDatabase", "MariadbDatabase", "MongodbDatabase").
+		Omit("Backup", "PostgresqlDatabase").
 		Error
 }
 

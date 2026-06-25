@@ -84,36 +84,8 @@ type EnvVariables struct {
 	TestFTPPort  string `env:"TEST_FTP_PORT"`
 	TestSFTPPort string `env:"TEST_SFTP_PORT"`
 
-	TestMysql57Port string `env:"TEST_MYSQL_57_PORT"`
-	TestMysql80Port string `env:"TEST_MYSQL_80_PORT"`
-	TestMysql84Port string `env:"TEST_MYSQL_84_PORT"`
-	TestMysql90Port string `env:"TEST_MYSQL_90_PORT"`
-
-	TestMariadb55Port   string `env:"TEST_MARIADB_55_PORT"`
-	TestMariadb101Port  string `env:"TEST_MARIADB_101_PORT"`
-	TestMariadb102Port  string `env:"TEST_MARIADB_102_PORT"`
-	TestMariadb103Port  string `env:"TEST_MARIADB_103_PORT"`
-	TestMariadb104Port  string `env:"TEST_MARIADB_104_PORT"`
-	TestMariadb105Port  string `env:"TEST_MARIADB_105_PORT"`
-	TestMariadb106Port  string `env:"TEST_MARIADB_106_PORT"`
-	TestMariadb1011Port string `env:"TEST_MARIADB_1011_PORT"`
-	TestMariadb114Port  string `env:"TEST_MARIADB_114_PORT"`
-	TestMariadb118Port  string `env:"TEST_MARIADB_118_PORT"`
-	TestMariadb120Port  string `env:"TEST_MARIADB_120_PORT"`
-
-	TestMongodb40Port string `env:"TEST_MONGODB_40_PORT"`
-	TestMongodb42Port string `env:"TEST_MONGODB_42_PORT"`
-	TestMongodb44Port string `env:"TEST_MONGODB_44_PORT"`
-	TestMongodb50Port string `env:"TEST_MONGODB_50_PORT"`
-	TestMongodb60Port string `env:"TEST_MONGODB_60_PORT"`
-	TestMongodb70Port string `env:"TEST_MONGODB_70_PORT"`
-	TestMongodb82Port string `env:"TEST_MONGODB_82_PORT"`
-
 	TestPostgresSslPort  string `env:"TEST_POSTGRES_SSL_PORT"`
 	TestPostgresMtlsPort string `env:"TEST_POSTGRES_MTLS_PORT"`
-	TestMariadbSslPort   string `env:"TEST_MARIADB_SSL_PORT"`
-	TestMysqlSslPort     string `env:"TEST_MYSQL_SSL_PORT"`
-	TestMongodbSslPort   string `env:"TEST_MONGODB_SSL_PORT"`
 
 	// oauth
 	GitHubClientID     string `env:"GITHUB_CLIENT_ID"`

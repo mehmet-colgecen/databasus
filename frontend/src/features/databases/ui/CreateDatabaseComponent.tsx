@@ -4,12 +4,11 @@ import { type BackupConfig, backupConfigApi, backupsApi } from '../../../entity/
 import {
   type Database,
   DatabaseType,
-  type MariadbDatabase,
-  type MongodbDatabase,
-  type MysqlDatabase,
   Period,
   PostgresBackupType,
   type PostgresqlDatabase,
+  type RabbitmqDatabase,
+  type RedisDatabase,
   databaseApi,
 } from '../../../entity/databases';
 import type { UserProfile } from '../../../entity/users';
@@ -47,9 +46,8 @@ const initializeDatabaseTypeData = (db: Database): Database => {
   const base = {
     ...db,
     postgresql: undefined,
-    mysql: undefined,
-    mariadb: undefined,
-    mongodb: undefined,
+    redis: undefined,
+    rabbitmq: undefined,
   };
 
   switch (db.type) {
@@ -63,12 +61,10 @@ const initializeDatabaseTypeData = (db: Database): Database => {
             backupType: PostgresBackupType.PG_DUMP,
           } as PostgresqlDatabase),
       };
-    case DatabaseType.MYSQL:
-      return { ...base, mysql: db.mysql ?? ({} as MysqlDatabase) };
-    case DatabaseType.MARIADB:
-      return { ...base, mariadb: db.mariadb ?? ({} as MariadbDatabase) };
-    case DatabaseType.MONGODB:
-      return { ...base, mongodb: db.mongodb ?? ({ cpuCount: 1 } as MongodbDatabase) };
+    case DatabaseType.REDIS:
+      return { ...base, redis: db.redis ?? ({ port: 6379 } as RedisDatabase) };
+    case DatabaseType.RABBITMQ:
+      return { ...base, rabbitmq: db.rabbitmq ?? ({ managementPort: 15672 } as RabbitmqDatabase) };
     default:
       return db;
   }
@@ -146,7 +142,12 @@ export const CreateDatabaseComponent = ({ user, workspaceId, onCreated, onClose 
             database.type === DatabaseType.POSTGRES &&
             database.postgresql?.backupType === PostgresBackupType.WAL_V1;
 
-          setStep(isWalBackup ? 'backup-config' : 'create-readonly-user');
+          const isReadOnlyUserNotSupported =
+            database.type === DatabaseType.REDIS || database.type === DatabaseType.RABBITMQ;
+
+          setStep(
+            isWalBackup || isReadOnlyUserNotSupported ? 'backup-config' : 'create-readonly-user',
+          );
         }}
       />
     );

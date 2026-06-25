@@ -17,9 +17,6 @@ import (
 
 	backups_core "databasus-backend/internal/features/backups/backups/core"
 	"databasus-backend/internal/features/databases"
-	"databasus-backend/internal/features/databases/databases/mariadb"
-	"databasus-backend/internal/features/databases/databases/mongodb"
-	"databasus-backend/internal/features/databases/databases/mysql"
 	"databasus-backend/internal/features/databases/databases/postgresql"
 	"databasus-backend/internal/features/intervals"
 	"databasus-backend/internal/features/notifiers"
@@ -169,32 +166,11 @@ func postgresDatabase(name string, status *databases.HealthStatus) *databases.Da
 
 func Test_BuildAndSend_ProducesExpectedRequest(t *testing.T) {
 	pgDB := postgresDatabase("pg", availableStatus())
-	mysqlDB := &databases.Database{
-		ID:           uuid.New(),
-		Name:         "my",
-		Type:         databases.DatabaseTypeMysql,
-		HealthStatus: availableStatus(),
-		Mysql:        &mysql.MysqlDatabase{Version: tools.MysqlVersion("8.0")},
-	}
-	mariaDB := &databases.Database{
-		ID:           uuid.New(),
-		Name:         "maria",
-		Type:         databases.DatabaseTypeMariadb,
-		HealthStatus: availableStatus(),
-		Mariadb:      &mariadb.MariadbDatabase{Version: tools.MariadbVersion("10.6")},
-	}
-	mongoDB := &databases.Database{
-		ID:           uuid.New(),
-		Name:         "mongo",
-		Type:         databases.DatabaseTypeMongodb,
-		HealthStatus: availableStatus(),
-		Mongodb:      &mongodb.MongodbDatabase{Version: tools.MongodbVersion("6.0")},
-	}
 
 	sender := &fakeSender{}
 	service := newServiceUnderTest(
 		t,
-		&fakeDatabaseLister{databases: []*databases.Database{pgDB, mysqlDB, mariaDB, mongoDB}},
+		&fakeDatabaseLister{databases: []*databases.Database{pgDB}},
 		&fakeStorageLister{storages: []*storages.Storage{
 			{Type: storages.StorageTypeS3},
 			{Type: storages.StorageTypeLocal},
@@ -216,14 +192,14 @@ func Test_BuildAndSend_ProducesExpectedRequest(t *testing.T) {
 	assert.Equal(t, "9.9.9", req.AppVersion)
 	assert.Equal(t, runtime.GOOS, req.OS)
 	assert.Equal(t, runtime.GOARCH, req.Arch)
-	require.Len(t, req.Databases, 4)
+	require.Len(t, req.Databases, 1)
 
 	types := make([]string, 0, len(req.Databases))
 	for _, d := range req.Databases {
 		types = append(types, d.Type)
 	}
 	assert.ElementsMatch(t,
-		[]string{"POSTGRES", "MYSQL", "MARIADB", "MONGODB"},
+		[]string{"POSTGRES"},
 		types,
 	)
 
