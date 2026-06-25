@@ -2,8 +2,8 @@
 
 # Image configuration
 image:
-  repository: databasus/databasus
-  tag: null
+  repository: platform360infras.azurecr.io/databasus
+  tag: "3.42.0"
   # When set, overrides `tag` and pins to an immutable digest (e.g. "sha256:abc...").
   digest: ""
   pullPolicy: Always
