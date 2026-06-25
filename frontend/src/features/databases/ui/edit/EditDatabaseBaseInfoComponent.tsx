@@ -97,6 +97,8 @@ export const EditDatabaseBaseInfoComponent = ({
         updatedDatabase.kubernetes =
           editingDatabase.kubernetes ??
           ({
+            id: '',
+            version: '',
             resourceTypes: ['SECRET'],
             namespaceScope: 'ALL',
             namespaces: [],
