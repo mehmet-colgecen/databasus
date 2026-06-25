@@ -1,14 +1,11 @@
 <div align="center">
   <img src="assets/logo.svg" alt="Databasus Logo" width="250"/>
 
-  <h3>PostgreSQL backup tool (with MySQL\MariaDB and MongoDB support)</h3>
+  <h3>PostgreSQL backup tool (with Redis, RabbitMQ, and Kubernetes support)</h3>
   <p>Databasus is a free, open source and self-hosted tool to backup databases (primarily PostgreSQL). Make backups with different storages (S3, Google Drive, FTP, etc.) and notifications about progress (Slack, Discord, Telegram, etc.). With focus on Point-In-Time Recovery and restore verification</p>
   
   <!-- Badges -->
    [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-  [![MySQL](https://img.shields.io/badge/MySQL-4479A1?logo=mysql&logoColor=white)](https://www.mysql.com/)
-  [![MariaDB](https://img.shields.io/badge/MariaDB-003545?logo=mariadb&logoColor=white)](https://mariadb.org/)
-  [![MongoDB](https://img.shields.io/badge/MongoDB-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/)
   <br />
   [![Apache 2.0 License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
   [![Docker Pulls](https://img.shields.io/docker/pulls/databasus/databasus?color=brightgreen)](https://hub.docker.com/r/databasus/databasus)
@@ -40,9 +37,6 @@
 ### 💾 **Supported databases**
 
 - **PostgreSQL**: 12, 13, 14, 15, 16, 17 and 18
-- **MySQL**: 5.7, 8 and 9
-- **MariaDB**: 10, 11 and 12
-- **MongoDB**: 4.2+, 5, 6, 7 and 8
 
 ### 🔄 **Scheduled backups**
 

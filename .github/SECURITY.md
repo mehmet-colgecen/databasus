@@ -29,18 +29,6 @@ We recommend always using the latest version of Databasus. Security patches are 
 
 Databasus supports PostgreSQL versions 12, 13, 14, 15, 16, 17 and 18.
 
-### MySQL Compatibility
-
-Databasus supports MySQL versions 5.7, 8 and 9.
-
-### MariaDB Compatibility
-
-Databasus supports MariaDB versions 10 and 11.
-
-### MongoDB Compatibility
-
-Databasus supports MongoDB versions 4, 5, 6, 7 and 8.
-
 ## Response Timeline
 
 - **Acknowledgment**: Within 48-72 hours

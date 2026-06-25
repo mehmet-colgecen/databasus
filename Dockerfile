@@ -146,7 +146,6 @@ RUN set -eux; \
     apt-get install -y --no-install-recommends \
       wget ca-certificates gnupg lsb-release sudo gosu curl unzip xz-utils \
       libncurses5 libncurses6 rclone \
-      libmariadb3 \
       libgnutls30; \
     wget -qO- https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -; \
     echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
@@ -159,7 +158,7 @@ RUN set -eux; \
     apt-get install -y --no-install-recommends postgresql-17 valkey; \
     rm -rf /var/lib/apt/lists/*
 
-# ========= Pre-built DB client binaries (PG, MySQL, MariaDB, MongoDB) =========
+# ========= Pre-built DB client binaries (PostgreSQL) =========
 # All client tools live under /app/assets/tools/<arch>/ — the backend resolves
 # them at runtime via runtime.GOARCH. Use a bind mount so only the tree matching
 # $TARGETARCH ends up in an image layer (the unused arch never materialises).
@@ -171,10 +170,7 @@ RUN --mount=type=bind,source=assets/tools,target=/ctx/tools,readonly \
     elif [ "$TARGETARCH" = "arm64" ]; then \
       cp -r /ctx/tools/arm /app/assets/tools/arm; \
     fi && \
-    chmod +x /app/assets/tools/*/postgresql/*/bin/* \
-             /app/assets/tools/*/mysql/*/bin/* \
-             /app/assets/tools/*/mariadb/*/bin/* \
-             /app/assets/tools/*/mongodb/bin/*
+    chmod +x /app/assets/tools/*/postgresql/*/bin/*
 
 # Create postgres user and set up directories
 RUN groupadd -g 999 postgres || true && \

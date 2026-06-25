@@ -3,8 +3,6 @@ databasus-data/
 .env
 pgdata/
 pgdata-test/
-mysqldata/
-mariadbdata/
 valkey-data/
 victoria-logs-data/
 wal-queue/
