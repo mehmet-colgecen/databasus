@@ -4,9 +4,6 @@ import { type BackupConfig, backupConfigApi, backupsApi } from '../../../entity/
 import {
   type Database,
   DatabaseType,
-  type MariadbDatabase,
-  type MongodbDatabase,
-  type MysqlDatabase,
   Period,
   PostgresBackupType,
   type PostgresqlDatabase,
@@ -49,9 +46,6 @@ const initializeDatabaseTypeData = (db: Database): Database => {
   const base = {
     ...db,
     postgresql: undefined,
-    mysql: undefined,
-    mariadb: undefined,
-    mongodb: undefined,
     redis: undefined,
     rabbitmq: undefined,
   };
@@ -67,12 +61,6 @@ const initializeDatabaseTypeData = (db: Database): Database => {
             backupType: PostgresBackupType.PG_DUMP,
           } as PostgresqlDatabase),
       };
-    case DatabaseType.MYSQL:
-      return { ...base, mysql: db.mysql ?? ({} as MysqlDatabase) };
-    case DatabaseType.MARIADB:
-      return { ...base, mariadb: db.mariadb ?? ({} as MariadbDatabase) };
-    case DatabaseType.MONGODB:
-      return { ...base, mongodb: db.mongodb ?? ({ cpuCount: 1 } as MongodbDatabase) };
     case DatabaseType.REDIS:
       return { ...base, redis: db.redis ?? ({ port: 6379 } as RedisDatabase) };
     case DatabaseType.RABBITMQ:

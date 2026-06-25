@@ -9,9 +9,6 @@ import {
 } from '../../../../entity/databases';
 import { CreateReadOnlyComponent } from './CreateReadOnlyComponent';
 import { EditKubernetesSpecificDataComponent } from './EditKubernetesSpecificDataComponent';
-import { EditMariaDbSpecificDataComponent } from './EditMariaDbSpecificDataComponent';
-import { EditMongoDbSpecificDataComponent } from './EditMongoDbSpecificDataComponent';
-import { EditMySqlSpecificDataComponent } from './EditMySqlSpecificDataComponent';
 import { EditPostgreSqlSpecificDataComponent } from './EditPostgreSqlSpecificDataComponent';
 import { EditRabbitmqSpecificDataComponent } from './EditRabbitmqSpecificDataComponent';
 import { EditRedisSpecificDataComponent } from './EditRedisSpecificDataComponent';
@@ -142,12 +139,6 @@ export const EditDatabaseSpecificDataComponent = ({
   switch (editingDatabase.type) {
     case DatabaseType.POSTGRES:
       return <EditPostgreSqlSpecificDataComponent {...commonProps} isRestoreMode={isRestoreMode} />;
-    case DatabaseType.MYSQL:
-      return <EditMySqlSpecificDataComponent {...commonProps} />;
-    case DatabaseType.MARIADB:
-      return <EditMariaDbSpecificDataComponent {...commonProps} />;
-    case DatabaseType.MONGODB:
-      return <EditMongoDbSpecificDataComponent {...commonProps} />;
     case DatabaseType.REDIS:
       return <EditRedisSpecificDataComponent {...commonProps} />;
     case DatabaseType.RABBITMQ:

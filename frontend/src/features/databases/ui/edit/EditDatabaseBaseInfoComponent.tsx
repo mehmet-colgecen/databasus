@@ -6,9 +6,6 @@ import {
   DatabaseType,
   type KubernetesDatabase,
   type KubernetesNamespaceScope,
-  type MariadbDatabase,
-  type MongodbDatabase,
-  type MysqlDatabase,
   type PostgresqlDatabase,
   type RabbitmqDatabase,
   type RedisDatabase,
@@ -31,9 +28,6 @@ interface Props {
 
 const databaseTypeOptions = [
   { value: DatabaseType.POSTGRES, label: 'PostgreSQL' },
-  { value: DatabaseType.MYSQL, label: 'MySQL' },
-  { value: DatabaseType.MARIADB, label: 'MariaDB' },
-  { value: DatabaseType.MONGODB, label: 'MongoDB' },
   { value: DatabaseType.REDIS, label: 'Redis' },
   { value: DatabaseType.RABBITMQ, label: 'RabbitMQ' },
   { value: DatabaseType.KUBERNETES, label: 'Kubernetes' },
@@ -65,9 +59,6 @@ export const EditDatabaseBaseInfoComponent = ({
       ...editingDatabase,
       type: newType,
       postgresql: undefined,
-      mysql: undefined,
-      mariadb: undefined,
-      mongodb: undefined,
       redis: undefined,
       rabbitmq: undefined,
       kubernetes: undefined,
@@ -77,15 +68,6 @@ export const EditDatabaseBaseInfoComponent = ({
       case DatabaseType.POSTGRES:
         updatedDatabase.postgresql =
           editingDatabase.postgresql ?? ({ cpuCount: 1 } as PostgresqlDatabase);
-        break;
-      case DatabaseType.MYSQL:
-        updatedDatabase.mysql = editingDatabase.mysql ?? ({} as MysqlDatabase);
-        break;
-      case DatabaseType.MARIADB:
-        updatedDatabase.mariadb = editingDatabase.mariadb ?? ({} as MariadbDatabase);
-        break;
-      case DatabaseType.MONGODB:
-        updatedDatabase.mongodb = editingDatabase.mongodb ?? ({ cpuCount: 1 } as MongodbDatabase);
         break;
       case DatabaseType.REDIS:
         updatedDatabase.redis = editingDatabase.redis ?? ({ port: 6379 } as RedisDatabase);

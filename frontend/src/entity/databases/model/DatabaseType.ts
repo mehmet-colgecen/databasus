@@ -1,8 +1,5 @@
 export enum DatabaseType {
   POSTGRES = 'POSTGRES',
-  MYSQL = 'MYSQL',
-  MARIADB = 'MARIADB',
-  MONGODB = 'MONGODB',
   REDIS = 'REDIS',
   RABBITMQ = 'RABBITMQ',
   KUBERNETES = 'KUBERNETES',
