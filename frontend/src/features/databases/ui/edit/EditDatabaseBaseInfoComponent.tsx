@@ -5,6 +5,7 @@ import {
   type Database,
   DatabaseType,
   type KubernetesDatabase,
+  type KubernetesNamespaceScope,
   type MariadbDatabase,
   type MongodbDatabase,
   type MysqlDatabase,
@@ -97,12 +98,10 @@ export const EditDatabaseBaseInfoComponent = ({
         updatedDatabase.kubernetes =
           editingDatabase.kubernetes ??
           ({
-            id: '',
-            version: '',
             resourceTypes: ['SECRET'],
-            namespaceScope: 'ALL',
-            namespaces: [],
-            objectNames: [],
+            namespaceScope: 'ALL' as KubernetesNamespaceScope,
+            namespaces: [] as string[],
+            objectNames: [] as string[],
           } as KubernetesDatabase);
         break;
     }

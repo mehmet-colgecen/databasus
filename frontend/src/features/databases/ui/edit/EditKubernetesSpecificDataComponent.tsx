@@ -140,6 +140,7 @@ export const EditKubernetesSpecificDataComponent = ({
             className="max-w-[280px] grow"
             placeholder="Type a namespace and press Enter"
             tokenSeparators={[',', ' ']}
+            notFoundContent={null}
           />
         </div>
       )}
@@ -154,6 +155,7 @@ export const EditKubernetesSpecificDataComponent = ({
           className="max-w-[280px] grow"
           placeholder="Optional - leave empty for all objects"
           tokenSeparators={[',', ' ']}
+          notFoundContent={null}
         />
       </div>
 
