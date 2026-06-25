@@ -37,6 +37,9 @@
 ### 💾 **Supported databases**
 
 - **PostgreSQL**: 12, 13, 14, 15, 16, 17 and 18
+- **Redis**: RDB snapshots
+- **RabbitMQ**: definitions (exchanges, queues, bindings)
+- **Kubernetes**: Secrets and ConfigMaps
 
 ### 🔄 **Scheduled backups**
 
