@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
@@ -20,7 +19,6 @@ import (
 	users_testing "databasus-backend/internal/features/users/testing"
 	workspaces_testing "databasus-backend/internal/features/workspaces/testing"
 	test_utils "databasus-backend/internal/util/testing"
-	"databasus-backend/internal/util/tools"
 )
 
 func Test_BackupShouldFailNotHang_WhenSaveFileFails_RegressionForIssue582(t *testing.T) {
@@ -44,30 +42,6 @@ func Test_BackupShouldFailNotHang_WhenSaveFileFails_RegressionForIssue582(t *tes
 	storage := storages.CreateTestFlakyS3Storage(workspace.ID, minioEndpoint)
 	defer storages.RemoveTestStorage(storage.ID)
 
-	t.Run("MariaDB", func(t *testing.T) {
-		container, err := connectToMariadbContainer(
-			tools.MariadbVersion1011,
-			env.TestMariadb1011Port,
-		)
-		if err != nil {
-			t.Skipf("Skipping: failed to connect to MariaDB test container: %v", err)
-			return
-		}
-		defer container.DB.Close()
-
-		setupMariadbTestData(t, container.DB)
-
-		database := createMariadbDatabaseViaAPI(
-			t, router, "Issue 582 MariaDB DB", workspace.ID,
-			container.Host, container.Port,
-			container.Username, container.Password, container.Database,
-			container.Version,
-			user.Token,
-		)
-
-		assertBackupFailsWithoutHanging(t, router, user.Token, database.ID, storage.ID)
-	})
-
 	t.Run("PostgreSQL", func(t *testing.T) {
 		container, err := connectToPostgresContainer("16", env.TestPostgres16Port)
 		if err != nil {
@@ -83,55 +57,6 @@ func Test_BackupShouldFailNotHang_WhenSaveFileFails_RegressionForIssue582(t *tes
 			t, router, "Issue 582 PostgreSQL DB", workspace.ID,
 			container.Host, container.Port,
 			container.Username, container.Password, container.Database,
-			user.Token,
-		)
-
-		assertBackupFailsWithoutHanging(t, router, user.Token, database.ID, storage.ID)
-	})
-
-	t.Run("MySQL", func(t *testing.T) {
-		container, err := connectToMysqlContainer(
-			tools.MysqlVersion80,
-			env.TestMysql80Port,
-		)
-		if err != nil {
-			t.Skipf("Skipping: failed to connect to MySQL test container: %v", err)
-			return
-		}
-		defer container.DB.Close()
-
-		setupMysqlTestData(t, container.DB)
-
-		database := createMysqlDatabaseViaAPI(
-			t, router, "Issue 582 MySQL DB", workspace.ID,
-			container.Host, container.Port,
-			container.Username, container.Password, container.Database,
-			container.Version,
-			user.Token,
-		)
-
-		assertBackupFailsWithoutHanging(t, router, user.Token, database.ID, storage.ID)
-	})
-
-	t.Run("MongoDB", func(t *testing.T) {
-		container, err := connectToMongodbContainer(
-			tools.MongodbVersion7,
-			env.TestMongodb70Port,
-		)
-		if err != nil {
-			t.Skipf("Skipping: failed to connect to MongoDB test container: %v", err)
-			return
-		}
-		defer func() { _ = container.Client.Disconnect(t.Context()) }()
-
-		setupMongodbTestData(t, container)
-
-		database := createMongodbDatabaseViaAPI(
-			t, router, "Issue 582 MongoDB DB", workspace.ID,
-			container.Host, container.Port,
-			container.Username, container.Password, container.Database,
-			container.AuthDatabase,
-			container.Version,
 			user.Token,
 		)
 

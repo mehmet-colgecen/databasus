@@ -2,10 +2,10 @@
 // (e.g. a Redis SYNC snapshot or a RabbitMQ definitions response) into storage
 // through the shared encryption and byte-counting writers.
 //
-// The exec-based engines (Postgres/MySQL/MariaDB/MongoDB) manage a subprocess
-// and keep their own pipeline; this helper exists only for engines whose source
-// is already an io.Reader, so they don't each reimplement the pipe wiring,
-// shutdown checks and cancellation handling.
+// The exec-based engine (Postgres) manages a subprocess and keeps its own
+// pipeline; this helper exists only for engines whose source is already an
+// io.Reader, so they don't each reimplement the pipe wiring, shutdown checks
+// and cancellation handling.
 package streaming
 
 import (

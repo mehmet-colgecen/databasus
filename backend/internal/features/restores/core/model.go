@@ -6,9 +6,6 @@ import (
 	"github.com/google/uuid"
 
 	backups_core "databasus-backend/internal/features/backups/backups/core"
-	"databasus-backend/internal/features/databases/databases/mariadb"
-	"databasus-backend/internal/features/databases/databases/mongodb"
-	"databasus-backend/internal/features/databases/databases/mysql"
 	"databasus-backend/internal/features/databases/databases/postgresql"
 )
 
@@ -20,9 +17,6 @@ type Restore struct {
 	Backup   *backups_core.Backup
 
 	PostgresqlDatabase *postgresql.PostgresqlDatabase `json:"postgresqlDatabase" gorm:"-"`
-	MysqlDatabase      *mysql.MysqlDatabase           `json:"mysqlDatabase"      gorm:"-"`
-	MariadbDatabase    *mariadb.MariadbDatabase       `json:"mariadbDatabase"    gorm:"-"`
-	MongodbDatabase    *mongodb.MongodbDatabase       `json:"mongodbDatabase"    gorm:"-"`
 
 	FailMessage *string `json:"failMessage" gorm:"column:fail_message"`
 

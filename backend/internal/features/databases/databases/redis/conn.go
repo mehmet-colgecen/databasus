@@ -24,8 +24,7 @@ type Conn struct {
 }
 
 // DialContext opens a TCP (or TLS) RESP connection. When isTLS is set the
-// server certificate is not verified — the same trade-off the MongoDB and
-// MySQL connectors make for self-signed internal databases.
+// server certificate is not verified — acceptable for self-signed internal databases.
 func DialContext(ctx context.Context, host string, port int, isTLS bool) (*Conn, error) {
 	address := net.JoinHostPort(host, strconv.Itoa(port))
 	netDialer := &net.Dialer{Timeout: dialTimeout}

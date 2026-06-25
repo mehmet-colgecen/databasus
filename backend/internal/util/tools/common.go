@@ -21,7 +21,7 @@ func withExeOnWindows(name string) string {
 
 // ToolCheckResult is one DB-version bundle's verification outcome. A bundle
 // is considered fatal when missing/broken should crash the app at startup
-// (Postgres) and non-fatal otherwise (MySQL, MariaDB, MongoDB).
+// (Postgres).
 type ToolCheckResult struct {
 	Db      string
 	Version string
@@ -68,12 +68,7 @@ func checkBinDir(binDir string, requiredCommands []string) []error {
 // arch is present and executable. Pure: never logs, never exits. Used by
 // startup (config) and runtime (healthcheck).
 func CheckAllClientTools() []ToolCheckResult {
-	results := checkPostgresql()
-	results = append(results, checkMysql()...)
-	results = append(results, checkMariadb()...)
-	results = append(results, checkMongodb()...)
-
-	return results
+	return checkPostgresql()
 }
 
 // LogAndExitIfClientToolsBroken logs every check result and exits the process

@@ -5,17 +5,11 @@ import (
 
 	"github.com/google/uuid"
 
-	"databasus-backend/internal/features/databases/databases/mariadb"
-	"databasus-backend/internal/features/databases/databases/mongodb"
-	"databasus-backend/internal/features/databases/databases/mysql"
 	"databasus-backend/internal/features/databases/databases/postgresql"
 )
 
 type RestoreDatabaseCache struct {
 	PostgresqlDatabase *postgresql.PostgresqlDatabase `json:"postgresqlDatabase,omitzero"`
-	MysqlDatabase      *mysql.MysqlDatabase           `json:"mysqlDatabase,omitzero"`
-	MariadbDatabase    *mariadb.MariadbDatabase       `json:"mariadbDatabase,omitzero"`
-	MongodbDatabase    *mongodb.MongodbDatabase       `json:"mongodbDatabase,omitzero"`
 }
 
 type RestoreToNodeRelation struct {

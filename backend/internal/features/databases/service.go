@@ -14,9 +14,6 @@ import (
 	"databasus-backend/internal/config"
 	audit_logs "databasus-backend/internal/features/audit_logs"
 	"databasus-backend/internal/features/databases/databases/kubernetes"
-	"databasus-backend/internal/features/databases/databases/mariadb"
-	"databasus-backend/internal/features/databases/databases/mongodb"
-	"databasus-backend/internal/features/databases/databases/mysql"
 	"databasus-backend/internal/features/databases/databases/postgresql"
 	"databasus-backend/internal/features/databases/databases/rabbitmq"
 	"databasus-backend/internal/features/databases/databases/redis"
@@ -475,50 +472,6 @@ func (s *DatabaseService) CopyDatabase(
 				CpuCount:       existingDatabase.Postgresql.CpuCount,
 			}
 		}
-	case DatabaseTypeMysql:
-		if existingDatabase.Mysql != nil {
-			newDatabase.Mysql = &mysql.MysqlDatabase{
-				ID:         uuid.Nil,
-				DatabaseID: nil,
-				Version:    existingDatabase.Mysql.Version,
-				Host:       existingDatabase.Mysql.Host,
-				Port:       existingDatabase.Mysql.Port,
-				Username:   existingDatabase.Mysql.Username,
-				Password:   existingDatabase.Mysql.Password,
-				Database:   existingDatabase.Mysql.Database,
-				IsHttps:    existingDatabase.Mysql.IsHttps,
-			}
-		}
-	case DatabaseTypeMariadb:
-		if existingDatabase.Mariadb != nil {
-			newDatabase.Mariadb = &mariadb.MariadbDatabase{
-				ID:         uuid.Nil,
-				DatabaseID: nil,
-				Version:    existingDatabase.Mariadb.Version,
-				Host:       existingDatabase.Mariadb.Host,
-				Port:       existingDatabase.Mariadb.Port,
-				Username:   existingDatabase.Mariadb.Username,
-				Password:   existingDatabase.Mariadb.Password,
-				Database:   existingDatabase.Mariadb.Database,
-				IsHttps:    existingDatabase.Mariadb.IsHttps,
-			}
-		}
-	case DatabaseTypeMongodb:
-		if existingDatabase.Mongodb != nil {
-			newDatabase.Mongodb = &mongodb.MongodbDatabase{
-				ID:           uuid.Nil,
-				DatabaseID:   nil,
-				Version:      existingDatabase.Mongodb.Version,
-				Host:         existingDatabase.Mongodb.Host,
-				Port:         existingDatabase.Mongodb.Port,
-				Username:     existingDatabase.Mongodb.Username,
-				Password:     existingDatabase.Mongodb.Password,
-				Database:     existingDatabase.Mongodb.Database,
-				AuthDatabase: existingDatabase.Mongodb.AuthDatabase,
-				IsHttps:      existingDatabase.Mongodb.IsHttps,
-				CpuCount:     existingDatabase.Mongodb.CpuCount,
-			}
-		}
 	case DatabaseTypeRedis:
 		if existingDatabase.Redis != nil {
 			newDatabase.Redis = &redis.RedisDatabase{
@@ -855,18 +808,6 @@ func (s *DatabaseService) CreateReadOnlyUser(
 	switch usingDatabase.Type {
 	case DatabaseTypePostgres:
 		username, password, err = usingDatabase.Postgresql.CreateReadOnlyUser(
-			ctx, s.logger, s.fieldEncryptor,
-		)
-	case DatabaseTypeMysql:
-		username, password, err = usingDatabase.Mysql.CreateReadOnlyUser(
-			ctx, s.logger, s.fieldEncryptor,
-		)
-	case DatabaseTypeMariadb:
-		username, password, err = usingDatabase.Mariadb.CreateReadOnlyUser(
-			ctx, s.logger, s.fieldEncryptor,
-		)
-	case DatabaseTypeMongodb:
-		username, password, err = usingDatabase.Mongodb.CreateReadOnlyUser(
 			ctx, s.logger, s.fieldEncryptor,
 		)
 	default:

@@ -7,8 +7,6 @@ import (
 	"github.com/google/uuid"
 
 	"databasus-backend/internal/config"
-	"databasus-backend/internal/features/databases/databases/mariadb"
-	"databasus-backend/internal/features/databases/databases/mongodb"
 	"databasus-backend/internal/features/databases/databases/postgresql"
 	"databasus-backend/internal/features/databases/databases/rabbitmq"
 	"databasus-backend/internal/features/databases/databases/redis"
@@ -34,53 +32,6 @@ func GetTestPostgresConfig() *postgresql.PostgresqlDatabase {
 		Password: "testpassword",
 		Database: &testDbName,
 		CpuCount: 1,
-	}
-}
-
-func GetTestMariadbConfig() *mariadb.MariadbDatabase {
-	env := config.GetEnv()
-	portStr := env.TestMariadb1011Port
-	if portStr == "" {
-		portStr = "33111"
-	}
-	port, err := strconv.Atoi(portStr)
-	if err != nil {
-		panic(fmt.Sprintf("Failed to parse TEST_MARIADB_1011_PORT: %v", err))
-	}
-
-	testDbName := "testdb"
-	return &mariadb.MariadbDatabase{
-		Version:  tools.MariadbVersion1011,
-		Host:     config.GetEnv().TestLocalhost,
-		Port:     port,
-		Username: "testuser",
-		Password: "testpassword",
-		Database: &testDbName,
-	}
-}
-
-func GetTestMongodbConfig() *mongodb.MongodbDatabase {
-	env := config.GetEnv()
-	portStr := env.TestMongodb70Port
-	if portStr == "" {
-		portStr = "27070"
-	}
-	port, err := strconv.Atoi(portStr)
-	if err != nil {
-		panic(fmt.Sprintf("Failed to parse TEST_MONGODB_70_PORT: %v", err))
-	}
-
-	return &mongodb.MongodbDatabase{
-		Version:      tools.MongodbVersion7,
-		Host:         config.GetEnv().TestLocalhost,
-		Port:         &port,
-		Username:     "root",
-		Password:     "rootpassword",
-		Database:     "testdb",
-		AuthDatabase: "admin",
-		IsHttps:      false,
-		IsSrv:        false,
-		CpuCount:     1,
 	}
 }
 
@@ -142,50 +93,6 @@ func CreateTestPostgresWalDatabase(
 			Version:    tools.PostgresqlVersion16,
 			CpuCount:   1,
 		},
-		Notifiers: []notifiers.Notifier{
-			*notifier,
-		},
-	}
-
-	database, err := databaseRepository.Save(database)
-	if err != nil {
-		panic(err)
-	}
-
-	return database
-}
-
-func CreateTestMariadbDatabase(
-	workspaceID uuid.UUID,
-	notifier *notifiers.Notifier,
-) *Database {
-	database := &Database{
-		WorkspaceID: &workspaceID,
-		Name:        "test-mariadb " + uuid.New().String(),
-		Type:        DatabaseTypeMariadb,
-		Mariadb:     GetTestMariadbConfig(),
-		Notifiers: []notifiers.Notifier{
-			*notifier,
-		},
-	}
-
-	database, err := databaseRepository.Save(database)
-	if err != nil {
-		panic(err)
-	}
-
-	return database
-}
-
-func CreateTestMongodbDatabase(
-	workspaceID uuid.UUID,
-	notifier *notifiers.Notifier,
-) *Database {
-	database := &Database{
-		WorkspaceID: &workspaceID,
-		Name:        "test-mongodb " + uuid.New().String(),
-		Type:        DatabaseTypeMongodb,
-		Mongodb:     GetTestMongodbConfig(),
 		Notifiers: []notifiers.Notifier{
 			*notifier,
 		},
