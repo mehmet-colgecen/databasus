@@ -196,6 +196,13 @@ func (l *LocalStorage) EncryptSensitiveData(encryptor encryption.FieldEncryptor)
 	return nil
 }
 
+func (l *LocalStorage) Clone() *LocalStorage {
+	clone := *l
+	clone.StorageID = uuid.Nil
+
+	return &clone
+}
+
 func (l *LocalStorage) Update(incoming *LocalStorage) {
 }
 

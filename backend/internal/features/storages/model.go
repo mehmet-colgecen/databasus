@@ -160,6 +160,52 @@ func (s *Storage) Update(incoming *Storage) {
 	}
 }
 
+func (s *Storage) Clone() *Storage {
+	clone := &Storage{
+		WorkspaceID: s.WorkspaceID,
+		Type:        s.Type,
+		Name:        s.Name + " (copy)",
+		IsSystem:    s.IsSystem,
+	}
+
+	switch s.Type {
+	case StorageTypeLocal:
+		if s.LocalStorage != nil {
+			clone.LocalStorage = s.LocalStorage.Clone()
+		}
+	case StorageTypeS3:
+		if s.S3Storage != nil {
+			clone.S3Storage = s.S3Storage.Clone()
+		}
+	case StorageTypeGoogleDrive:
+		if s.GoogleDriveStorage != nil {
+			clone.GoogleDriveStorage = s.GoogleDriveStorage.Clone()
+		}
+	case StorageTypeNAS:
+		if s.NASStorage != nil {
+			clone.NASStorage = s.NASStorage.Clone()
+		}
+	case StorageTypeAzureBlob:
+		if s.AzureBlobStorage != nil {
+			clone.AzureBlobStorage = s.AzureBlobStorage.Clone()
+		}
+	case StorageTypeFTP:
+		if s.FTPStorage != nil {
+			clone.FTPStorage = s.FTPStorage.Clone()
+		}
+	case StorageTypeSFTP:
+		if s.SFTPStorage != nil {
+			clone.SFTPStorage = s.SFTPStorage.Clone()
+		}
+	case StorageTypeRclone:
+		if s.RcloneStorage != nil {
+			clone.RcloneStorage = s.RcloneStorage.Clone()
+		}
+	}
+
+	return clone
+}
+
 func (s *Storage) getSpecificStorage() StorageFileSaver {
 	switch s.Type {
 	case StorageTypeLocal:

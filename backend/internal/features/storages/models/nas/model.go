@@ -294,6 +294,13 @@ func (n *NASStorage) EncryptSensitiveData(encryptor encryption.FieldEncryptor) e
 	return nil
 }
 
+func (n *NASStorage) Clone() *NASStorage {
+	clone := *n
+	clone.StorageID = uuid.Nil
+
+	return &clone
+}
+
 func (n *NASStorage) Update(incoming *NASStorage) {
 	n.Host = incoming.Host
 	n.Port = incoming.Port

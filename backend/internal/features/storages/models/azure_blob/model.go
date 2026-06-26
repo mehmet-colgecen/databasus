@@ -310,6 +310,13 @@ func (s *AzureBlobStorage) EncryptSensitiveData(encryptor encryption.FieldEncryp
 	return nil
 }
 
+func (s *AzureBlobStorage) Clone() *AzureBlobStorage {
+	clone := *s
+	clone.StorageID = uuid.Nil
+
+	return &clone
+}
+
 func (s *AzureBlobStorage) Update(incoming *AzureBlobStorage) {
 	s.AuthMethod = incoming.AuthMethod
 	s.ContainerName = incoming.ContainerName

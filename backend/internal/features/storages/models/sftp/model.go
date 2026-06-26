@@ -247,6 +247,13 @@ func (s *SFTPStorage) EncryptSensitiveData(encryptor encryption.FieldEncryptor) 
 	return nil
 }
 
+func (s *SFTPStorage) Clone() *SFTPStorage {
+	clone := *s
+	clone.StorageID = uuid.Nil
+
+	return &clone
+}
+
 func (s *SFTPStorage) Update(incoming *SFTPStorage) {
 	s.Host = incoming.Host
 	s.Port = incoming.Port

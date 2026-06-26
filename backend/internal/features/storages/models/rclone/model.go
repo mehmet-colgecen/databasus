@@ -224,6 +224,13 @@ func (r *RcloneStorage) EncryptSensitiveData(encryptor encryption.FieldEncryptor
 	return nil
 }
 
+func (r *RcloneStorage) Clone() *RcloneStorage {
+	clone := *r
+	clone.StorageID = uuid.Nil
+
+	return &clone
+}
+
 func (r *RcloneStorage) Update(incoming *RcloneStorage) {
 	r.RemotePath = incoming.RemotePath
 

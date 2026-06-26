@@ -313,6 +313,13 @@ func (s *GoogleDriveStorage) EncryptSensitiveData(encryptor encryption.FieldEncr
 	return nil
 }
 
+func (s *GoogleDriveStorage) Clone() *GoogleDriveStorage {
+	clone := *s
+	clone.StorageID = uuid.Nil
+
+	return &clone
+}
+
 func (s *GoogleDriveStorage) Update(incoming *GoogleDriveStorage) {
 	s.ClientID = incoming.ClientID
 

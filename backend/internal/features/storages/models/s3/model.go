@@ -346,6 +346,13 @@ func (s *S3Storage) EncryptSensitiveData(encryptor encryption.FieldEncryptor) er
 	return nil
 }
 
+func (s *S3Storage) Clone() *S3Storage {
+	clone := *s
+	clone.StorageID = uuid.Nil
+
+	return &clone
+}
+
 func (s *S3Storage) Update(incoming *S3Storage) {
 	s.S3Bucket = incoming.S3Bucket
 	s.S3Region = incoming.S3Region

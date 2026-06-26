@@ -516,3 +516,48 @@ func Test_StorageUpdate_WhenExistingS3IsNil_ValidateDoesNotPanic(t *testing.T) {
 		_ = existing.Validate(encryptor)
 	})
 }
+
+func Test_StorageClone_ResetsIdsAndCopiesSecrets(t *testing.T) {
+	sourceID := uuid.New()
+	workspaceID := uuid.New()
+	lastError := "previous failure"
+
+	source := &Storage{
+		ID:            sourceID,
+		WorkspaceID:   workspaceID,
+		Type:          StorageTypeS3,
+		Name:          "Prod S3",
+		LastSaveError: &lastError,
+		IsSystem:      true,
+		S3Storage: &s3_storage.S3Storage{
+			StorageID:   sourceID,
+			S3Bucket:    "prod-bucket",
+			S3Region:    "us-east-1",
+			S3AccessKey: "encrypted-access-key",
+			S3SecretKey: "encrypted-secret-key",
+			S3Endpoint:  "https://s3.example.com",
+			S3Prefix:    "prod",
+		},
+	}
+
+	clone := source.Clone()
+
+	assert.Equal(t, uuid.Nil, clone.ID)
+	assert.Equal(t, "Prod S3 (copy)", clone.Name)
+	assert.Nil(t, clone.LastSaveError)
+	assert.Equal(t, workspaceID, clone.WorkspaceID)
+	assert.Equal(t, StorageTypeS3, clone.Type)
+	assert.True(t, clone.IsSystem)
+
+	require.NotNil(t, clone.S3Storage)
+	assert.NotSame(t, source.S3Storage, clone.S3Storage)
+	assert.Equal(t, uuid.Nil, clone.S3Storage.StorageID)
+	assert.Equal(t, "prod-bucket", clone.S3Storage.S3Bucket)
+	assert.Equal(t, "prod", clone.S3Storage.S3Prefix)
+	assert.Equal(t, "encrypted-access-key", clone.S3Storage.S3AccessKey)
+	assert.Equal(t, "encrypted-secret-key", clone.S3Storage.S3SecretKey)
+
+	// Mutating the clone must not affect the source (deep copy).
+	clone.S3Storage.S3Bucket = "changed"
+	assert.Equal(t, "prod-bucket", source.S3Storage.S3Bucket)
+}
