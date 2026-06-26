@@ -177,6 +177,9 @@ export const StoragesComponent = ({
                 updateSelectedStorageId(remainingStorages[0]?.id);
                 loadStorages();
               }}
+              onStorageCloned={(newStorage) => {
+                loadStorages(false, newStorage.id);
+              }}
               isCanManageStorages={isCanManageStorages}
               user={user}
             />

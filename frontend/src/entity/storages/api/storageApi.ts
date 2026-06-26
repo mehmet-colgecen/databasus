@@ -64,4 +64,12 @@ export const storageApi = {
       requestOptions,
     );
   },
+
+  async cloneStorage(id: string) {
+    const requestOptions: RequestOptions = new RequestOptions();
+    return apiHelper.fetchPostJson<Storage>(
+      `${getApplicationServer()}/api/v1/storages/${id}/clone`,
+      requestOptions,
+    );
+  },
 };

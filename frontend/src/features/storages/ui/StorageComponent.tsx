@@ -1,6 +1,7 @@
 import {
   ArrowRightOutlined,
   CloseOutlined,
+  CopyOutlined,
   DeleteOutlined,
   InfoCircleOutlined,
 } from '@ant-design/icons';
@@ -23,6 +24,7 @@ interface Props {
   onStorageChanged: (storage: Storage) => void;
   onStorageDeleted: () => void;
   onStorageTransferred: () => void;
+  onStorageCloned: (newStorage: Storage) => void;
   isCanManageStorages: boolean;
   user: UserProfile;
 }
@@ -32,6 +34,7 @@ export const StorageComponent = ({
   onStorageChanged,
   onStorageDeleted,
   onStorageTransferred,
+  onStorageCloned,
   isCanManageStorages,
   user,
 }: Props) => {
@@ -48,6 +51,7 @@ export const StorageComponent = ({
 
   const [isShowRemoveConfirm, setIsShowRemoveConfirm] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
+  const [isCloning, setIsCloning] = useState(false);
 
   const [isShowTransferDialog, setIsShowTransferDialog] = useState(false);
 
@@ -95,6 +99,27 @@ export const StorageComponent = ({
     }
 
     setIsRemoving(false);
+  };
+
+  const clone = () => {
+    if (!storage) return;
+
+    setIsCloning(true);
+    storageApi
+      .cloneStorage(storage.id)
+      .then((clonedStorage: Storage) => {
+        ToastHelper.showToast({
+          title: 'Storage cloned',
+          description: 'A copy of the storage was created',
+        });
+        onStorageCloned(clonedStorage);
+      })
+      .catch((e: Error) => {
+        alert(e.message);
+      })
+      .finally(() => {
+        setIsCloning(false);
+      });
   };
 
   const startEdit = (type: 'name' | 'settings') => {
@@ -278,6 +303,18 @@ export const StorageComponent = ({
 
                 {isCanManageStorages && (
                   <>
+                    {!storage.isSystem && (
+                      <Button
+                        type="primary"
+                        ghost
+                        icon={<CopyOutlined />}
+                        onClick={clone}
+                        loading={isCloning}
+                        disabled={isCloning}
+                        className="mr-1"
+                      />
+                    )}
+
                     {!storage.isSystem && (
                       <Button
                         type="primary"
