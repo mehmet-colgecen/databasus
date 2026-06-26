@@ -94,7 +94,12 @@ func (s *StorageService) SaveStorage(
 			return ErrSystemStorageCannotBeMadePrivate
 		}
 
-		existingStorage.Update(storage)
+		canChangePrefix, err := s.canChangeStoragePrefix(storage.ID)
+		if err != nil {
+			return err
+		}
+
+		existingStorage.Update(storage, canChangePrefix)
 
 		oldName := existingStorage.Name
 
@@ -355,7 +360,9 @@ func (s *StorageService) TestStorageConnectionDirect(
 			return ErrStorageDoesNotBelongToWorkspace
 		}
 
-		existingStorage.Update(storage)
+		// A connection test is transient and never persisted, so test against the
+		// prefix the user entered.
+		existingStorage.Update(storage, true)
 
 		if err := existingStorage.Validate(s.fieldEncryptor); err != nil {
 			return err
@@ -367,6 +374,18 @@ func (s *StorageService) TestStorageConnectionDirect(
 	}
 
 	return usingStorage.TestConnection(s.fieldEncryptor)
+}
+
+// canChangeStoragePrefix reports whether a storage's object-key prefix may still
+// be edited. It is editable only while no databases are attached, since changing
+// the prefix once backups exist would orphan them under the old prefix.
+func (s *StorageService) canChangeStoragePrefix(storageID uuid.UUID) (bool, error) {
+	attachedDatabasesIDs, err := s.storageDatabaseCounter.GetStorageAttachedDatabasesIDs(storageID)
+	if err != nil {
+		return false, err
+	}
+
+	return len(attachedDatabasesIDs) == 0, nil
 }
 
 func (s *StorageService) GetStorageByID(

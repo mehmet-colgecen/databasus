@@ -8,9 +8,15 @@ interface Props {
   storage: Storage;
   setStorage: (storage: Storage) => void;
   setUnsaved: () => void;
+  isPathLocked: boolean;
 }
 
-export function EditAzureBlobStorageComponent({ storage, setStorage, setUnsaved }: Props) {
+export function EditAzureBlobStorageComponent({
+  storage,
+  setStorage,
+  setUnsaved,
+  isPathLocked,
+}: Props) {
   const hasAdvancedValues =
     !!storage?.azureBlobStorage?.prefix || !!storage?.azureBlobStorage?.endpoint;
   const [showAdvanced, setShowAdvanced] = useState(hasAdvancedValues);
@@ -221,11 +227,12 @@ export function EditAzureBlobStorageComponent({ storage, setStorage, setUnsaved 
                 size="small"
                 className="w-full max-w-[250px]"
                 placeholder="my-prefix/ (optional)"
+                disabled={isPathLocked}
               />
 
               <Tooltip
                 className="cursor-pointer"
-                title="Optional prefix for all blob names (e.g., 'backups/' or 'my_team/')"
+                title="Optional prefix for all blob names (e.g., 'backups/' or 'my_team/'). Locked once a database is attached (otherwise existing backups would be lost)."
               >
                 <InfoCircleOutlined className="ml-2" style={{ color: 'gray' }} />
               </Tooltip>

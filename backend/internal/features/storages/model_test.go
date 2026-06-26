@@ -478,7 +478,7 @@ func Test_StorageUpdate_WhenExistingStorageHasNilS3_AssignsIncomingS3(t *testing
 		},
 	}
 
-	existing.Update(incoming)
+	existing.Update(incoming, true)
 
 	assert.Equal(t, "new name", existing.Name)
 	assert.NotNil(t, existing.S3Storage)
@@ -510,7 +510,7 @@ func Test_StorageUpdate_WhenExistingS3IsNil_ValidateDoesNotPanic(t *testing.T) {
 		},
 	}
 
-	existing.Update(incoming)
+	existing.Update(incoming, true)
 
 	assert.NotPanics(t, func() {
 		_ = existing.Validate(encryptor)

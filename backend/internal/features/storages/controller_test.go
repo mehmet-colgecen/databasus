@@ -2191,6 +2191,193 @@ func Test_DeleteWorkspace_WithOwnSystemStorage_ReturnsForbidden(t *testing.T) {
 	assert.Error(t, err, "Workspace should be deleted after storage was removed")
 }
 
+type mockStorageDatabaseCounterWithAttached struct{}
+
+func (m *mockStorageDatabaseCounterWithAttached) GetStorageAttachedDatabasesIDs(
+	storageID uuid.UUID,
+) ([]uuid.UUID, error) {
+	return []uuid.UUID{uuid.New()}, nil
+}
+
+func createS3StorageWithPrefix(workspaceID uuid.UUID, prefix string) *Storage {
+	return &Storage{
+		WorkspaceID: workspaceID,
+		Type:        StorageTypeS3,
+		Name:        "S3 Prefix " + uuid.New().String(),
+		S3Storage: &s3_storage.S3Storage{
+			S3Bucket:    "bucket",
+			S3Region:    "us-east-1",
+			S3AccessKey: "access",
+			S3SecretKey: "secret",
+			S3Prefix:    prefix,
+		},
+	}
+}
+
+func Test_UpdateStorage_PrefixEditable_WhenNoDatabasesAttached(t *testing.T) {
+	owner := users_testing.CreateTestUser(users_enums.UserRoleMember)
+	router := createRouter()
+	workspace := workspaces_testing.CreateTestWorkspace("Test Workspace", owner, router)
+
+	var savedStorage Storage
+	test_utils.MakePostRequestAndUnmarshal(
+		t, router, "/api/v1/storages", "Bearer "+owner.Token,
+		*createS3StorageWithPrefix(workspace.ID, "original"), http.StatusOK, &savedStorage,
+	)
+
+	// Edit the way the UI does: re-fetch (secrets masked), change only the prefix.
+	var storageToEdit Storage
+	test_utils.MakeGetRequestAndUnmarshal(
+		t, router, fmt.Sprintf("/api/v1/storages/%s", savedStorage.ID.String()),
+		"Bearer "+owner.Token, http.StatusOK, &storageToEdit,
+	)
+	storageToEdit.S3Storage.S3Prefix = "changed"
+
+	var updatedStorage Storage
+	test_utils.MakePostRequestAndUnmarshal(
+		t, router, "/api/v1/storages", "Bearer "+owner.Token,
+		storageToEdit, http.StatusOK, &updatedStorage,
+	)
+
+	var fetchedStorage Storage
+	test_utils.MakeGetRequestAndUnmarshal(
+		t, router, fmt.Sprintf("/api/v1/storages/%s", savedStorage.ID.String()),
+		"Bearer "+owner.Token, http.StatusOK, &fetchedStorage,
+	)
+	assert.Equal(t, "changed", fetchedStorage.S3Storage.S3Prefix)
+
+	deleteStorage(t, router, savedStorage.ID, owner.Token)
+	workspaces_testing.RemoveTestWorkspace(workspace, router)
+}
+
+func Test_UpdateStorage_PrefixLocked_WhenDatabasesAttached(t *testing.T) {
+	owner := users_testing.CreateTestUser(users_enums.UserRoleMember)
+	router := createRouter()
+	GetStorageService().SetStorageDatabaseCounter(&mockStorageDatabaseCounterWithAttached{})
+	t.Cleanup(func() {
+		GetStorageService().SetStorageDatabaseCounter(&mockStorageDatabaseCounter{})
+	})
+	workspace := workspaces_testing.CreateTestWorkspace("Test Workspace", owner, router)
+
+	var savedStorage Storage
+	test_utils.MakePostRequestAndUnmarshal(
+		t, router, "/api/v1/storages", "Bearer "+owner.Token,
+		*createS3StorageWithPrefix(workspace.ID, "original"), http.StatusOK, &savedStorage,
+	)
+
+	var storageToEdit Storage
+	test_utils.MakeGetRequestAndUnmarshal(
+		t, router, fmt.Sprintf("/api/v1/storages/%s", savedStorage.ID.String()),
+		"Bearer "+owner.Token, http.StatusOK, &storageToEdit,
+	)
+	storageToEdit.S3Storage.S3Prefix = "changed"
+
+	var updatedStorage Storage
+	test_utils.MakePostRequestAndUnmarshal(
+		t, router, "/api/v1/storages", "Bearer "+owner.Token,
+		storageToEdit, http.StatusOK, &updatedStorage,
+	)
+
+	var fetchedStorage Storage
+	test_utils.MakeGetRequestAndUnmarshal(
+		t, router, fmt.Sprintf("/api/v1/storages/%s", savedStorage.ID.String()),
+		"Bearer "+owner.Token, http.StatusOK, &fetchedStorage,
+	)
+	assert.Equal(t, "original", fetchedStorage.S3Storage.S3Prefix)
+
+	deleteStorage(t, router, savedStorage.ID, owner.Token)
+	workspaces_testing.RemoveTestWorkspace(workspace, router)
+}
+
+func createAzureStorageWithPrefix(workspaceID uuid.UUID, prefix string) *Storage {
+	return &Storage{
+		WorkspaceID: workspaceID,
+		Type:        StorageTypeAzureBlob,
+		Name:        "Azure Prefix " + uuid.New().String(),
+		AzureBlobStorage: &azure_blob_storage.AzureBlobStorage{
+			AuthMethod:    azure_blob_storage.AuthMethodAccountKey,
+			AccountName:   "account",
+			AccountKey:    "key",
+			ContainerName: "container",
+			Prefix:        prefix,
+		},
+	}
+}
+
+func Test_UpdateStorage_AzurePrefixEditable_WhenNoDatabasesAttached(t *testing.T) {
+	owner := users_testing.CreateTestUser(users_enums.UserRoleMember)
+	router := createRouter()
+	workspace := workspaces_testing.CreateTestWorkspace("Test Workspace", owner, router)
+
+	var savedStorage Storage
+	test_utils.MakePostRequestAndUnmarshal(
+		t, router, "/api/v1/storages", "Bearer "+owner.Token,
+		*createAzureStorageWithPrefix(workspace.ID, "original"), http.StatusOK, &savedStorage,
+	)
+
+	var storageToEdit Storage
+	test_utils.MakeGetRequestAndUnmarshal(
+		t, router, fmt.Sprintf("/api/v1/storages/%s", savedStorage.ID.String()),
+		"Bearer "+owner.Token, http.StatusOK, &storageToEdit,
+	)
+	storageToEdit.AzureBlobStorage.Prefix = "changed"
+
+	var updatedStorage Storage
+	test_utils.MakePostRequestAndUnmarshal(
+		t, router, "/api/v1/storages", "Bearer "+owner.Token,
+		storageToEdit, http.StatusOK, &updatedStorage,
+	)
+
+	var fetchedStorage Storage
+	test_utils.MakeGetRequestAndUnmarshal(
+		t, router, fmt.Sprintf("/api/v1/storages/%s", savedStorage.ID.String()),
+		"Bearer "+owner.Token, http.StatusOK, &fetchedStorage,
+	)
+	assert.Equal(t, "changed", fetchedStorage.AzureBlobStorage.Prefix)
+
+	deleteStorage(t, router, savedStorage.ID, owner.Token)
+	workspaces_testing.RemoveTestWorkspace(workspace, router)
+}
+
+func Test_UpdateStorage_AzurePrefixLocked_WhenDatabasesAttached(t *testing.T) {
+	owner := users_testing.CreateTestUser(users_enums.UserRoleMember)
+	router := createRouter()
+	GetStorageService().SetStorageDatabaseCounter(&mockStorageDatabaseCounterWithAttached{})
+	t.Cleanup(func() {
+		GetStorageService().SetStorageDatabaseCounter(&mockStorageDatabaseCounter{})
+	})
+	workspace := workspaces_testing.CreateTestWorkspace("Test Workspace", owner, router)
+
+	var savedStorage Storage
+	test_utils.MakePostRequestAndUnmarshal(
+		t, router, "/api/v1/storages", "Bearer "+owner.Token,
+		*createAzureStorageWithPrefix(workspace.ID, "original"), http.StatusOK, &savedStorage,
+	)
+
+	var storageToEdit Storage
+	test_utils.MakeGetRequestAndUnmarshal(
+		t, router, fmt.Sprintf("/api/v1/storages/%s", savedStorage.ID.String()),
+		"Bearer "+owner.Token, http.StatusOK, &storageToEdit,
+	)
+	storageToEdit.AzureBlobStorage.Prefix = "changed"
+
+	var updatedStorage Storage
+	test_utils.MakePostRequestAndUnmarshal(
+		t, router, "/api/v1/storages", "Bearer "+owner.Token,
+		storageToEdit, http.StatusOK, &updatedStorage,
+	)
+
+	var fetchedStorage Storage
+	test_utils.MakeGetRequestAndUnmarshal(
+		t, router, fmt.Sprintf("/api/v1/storages/%s", savedStorage.ID.String()),
+		"Bearer "+owner.Token, http.StatusOK, &fetchedStorage,
+	)
+	assert.Equal(t, "original", fetchedStorage.AzureBlobStorage.Prefix)
+
+	deleteStorage(t, router, savedStorage.ID, owner.Token)
+	workspaces_testing.RemoveTestWorkspace(workspace, router)
+}
+
 func createRouter() *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	router := gin.New()

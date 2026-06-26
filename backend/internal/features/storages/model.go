@@ -103,7 +103,7 @@ func (s *Storage) EncryptSensitiveData(encryptor encryption.FieldEncryptor) erro
 	return s.getSpecificStorage().EncryptSensitiveData(encryptor)
 }
 
-func (s *Storage) Update(incoming *Storage) {
+func (s *Storage) Update(incoming *Storage, canChangePrefix bool) {
 	s.Name = incoming.Name
 	s.Type = incoming.Type
 	s.IsSystem = incoming.IsSystem
@@ -117,7 +117,7 @@ func (s *Storage) Update(incoming *Storage) {
 		}
 	case StorageTypeS3:
 		if s.S3Storage != nil && incoming.S3Storage != nil {
-			s.S3Storage.Update(incoming.S3Storage)
+			s.S3Storage.Update(incoming.S3Storage, canChangePrefix)
 		} else if incoming.S3Storage != nil {
 			s.S3Storage = incoming.S3Storage
 		}
@@ -135,7 +135,7 @@ func (s *Storage) Update(incoming *Storage) {
 		}
 	case StorageTypeAzureBlob:
 		if s.AzureBlobStorage != nil && incoming.AzureBlobStorage != nil {
-			s.AzureBlobStorage.Update(incoming.AzureBlobStorage)
+			s.AzureBlobStorage.Update(incoming.AzureBlobStorage, canChangePrefix)
 		} else if incoming.AzureBlobStorage != nil {
 			s.AzureBlobStorage = incoming.AzureBlobStorage
 		}

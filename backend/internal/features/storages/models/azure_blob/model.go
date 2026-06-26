@@ -317,7 +317,7 @@ func (s *AzureBlobStorage) Clone() *AzureBlobStorage {
 	return &clone
 }
 
-func (s *AzureBlobStorage) Update(incoming *AzureBlobStorage) {
+func (s *AzureBlobStorage) Update(incoming *AzureBlobStorage, canChangePrefix bool) {
 	s.AuthMethod = incoming.AuthMethod
 	s.ContainerName = incoming.ContainerName
 	s.Endpoint = incoming.Endpoint
@@ -332,6 +332,12 @@ func (s *AzureBlobStorage) Update(incoming *AzureBlobStorage) {
 
 	if incoming.AccountKey != "" {
 		s.AccountKey = incoming.AccountKey
+	}
+
+	// The prefix can only change while no backups exist (no databases attached),
+	// otherwise backups already written under the old prefix would be orphaned.
+	if canChangePrefix {
+		s.Prefix = incoming.Prefix
 	}
 }
 

@@ -9,6 +9,7 @@ interface Props {
   setStorage: (storage: Storage) => void;
   setUnsaved: () => void;
   connectionError?: string;
+  isPathLocked: boolean;
 }
 
 export function EditS3StorageComponent({
@@ -16,6 +17,7 @@ export function EditS3StorageComponent({
   setStorage,
   setUnsaved,
   connectionError,
+  isPathLocked,
 }: Props) {
   const hasAdvancedValues =
     !!storage?.s3Storage?.s3Prefix ||
@@ -206,14 +208,12 @@ export function EditS3StorageComponent({
                 size="small"
                 className="w-full max-w-[250px]"
                 placeholder="my-prefix/ (optional)"
-                // we do not allow to change the prefix after creation,
-                // otherwise we will have to migrate all the data to the new prefix
-                disabled={!!storage.id}
+                disabled={isPathLocked}
               />
 
               <Tooltip
                 className="cursor-pointer"
-                title="Optional prefix for all object keys (e.g., 'backups/' or 'my_team/'). May not work with some S3-compatible storages. Cannot be changed after creation (otherwise backups will be lost)."
+                title="Optional prefix for all object keys (e.g., 'backups/' or 'my_team/'). May not work with some S3-compatible storages. Locked once a database is attached (otherwise existing backups would be lost)."
               >
                 <InfoCircleOutlined className="ml-4" style={{ color: 'gray' }} />
               </Tooltip>

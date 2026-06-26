@@ -353,7 +353,7 @@ func (s *S3Storage) Clone() *S3Storage {
 	return &clone
 }
 
-func (s *S3Storage) Update(incoming *S3Storage) {
+func (s *S3Storage) Update(incoming *S3Storage, canChangePrefix bool) {
 	s.S3Bucket = incoming.S3Bucket
 	s.S3Region = incoming.S3Region
 	s.S3Endpoint = incoming.S3Endpoint
@@ -369,8 +369,11 @@ func (s *S3Storage) Update(incoming *S3Storage) {
 		s.S3SecretKey = incoming.S3SecretKey
 	}
 
-	// we do not allow to change the prefix after creation,
-	// otherwise we will have to transfer all the data to the new prefix
+	// The prefix can only change while no backups exist (no databases attached),
+	// otherwise backups already written under the old prefix would be orphaned.
+	if canChangePrefix {
+		s.S3Prefix = incoming.S3Prefix
+	}
 }
 
 func (s *S3Storage) putObjectOptions() minio.PutObjectOptions {

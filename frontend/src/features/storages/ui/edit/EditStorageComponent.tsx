@@ -3,6 +3,7 @@ import { Button, Input, Select, Switch, Tooltip } from 'antd';
 import { useEffect, useState } from 'react';
 
 import { IS_CLOUD, IS_DISABLE_CLOUD_NOTICE } from '../../../../constants';
+import { backupConfigApi } from '../../../../entity/backups';
 import {
   type Storage,
   StorageType,
@@ -50,6 +51,22 @@ export function EditStorageComponent({
   const [isTestingConnection, setIsTestingConnection] = useState(false);
   const [isTestConnectionSuccess, setIsTestConnectionSuccess] = useState(false);
   const [connectionError, setConnectionError] = useState<string | undefined>();
+
+  const [isPathLocked, setIsPathLocked] = useState<boolean>(!!editingStorage?.id);
+
+  const loadIsPathLocked = async () => {
+    if (!editingStorage?.id) {
+      setIsPathLocked(false);
+      return;
+    }
+
+    try {
+      const isStorageInUse = await backupConfigApi.isStorageUsing(editingStorage.id);
+      setIsPathLocked(isStorageInUse);
+    } catch {
+      setIsPathLocked(true);
+    }
+  };
 
   const save = async () => {
     if (!storage) return;
@@ -208,6 +225,10 @@ export function EditStorageComponent({
               : undefined,
           },
     );
+  }, [editingStorage]);
+
+  useEffect(() => {
+    loadIsPathLocked();
   }, [editingStorage]);
 
   const isAllDataFilled = () => {
@@ -419,6 +440,7 @@ export function EditStorageComponent({
               setConnectionError(undefined);
             }}
             connectionError={connectionError}
+            isPathLocked={isPathLocked}
           />
         )}
 
@@ -452,6 +474,7 @@ export function EditStorageComponent({
               setIsUnsaved(true);
               setIsTestConnectionSuccess(false);
             }}
+            isPathLocked={isPathLocked}
           />
         )}
 
