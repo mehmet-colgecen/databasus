@@ -150,6 +150,53 @@ func (s *StorageService) SaveStorage(
 	return nil
 }
 
+func (s *StorageService) CloneStorage(
+	user *users_models.User,
+	id uuid.UUID,
+) (*Storage, error) {
+	source, err := s.storageRepository.FindByID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	canManage, err := s.workspaceService.CanUserManageDBs(source.WorkspaceID, user)
+	if err != nil {
+		return nil, err
+	}
+	if !canManage {
+		return nil, ErrInsufficientPermissionsToManageStorage
+	}
+
+	if config.GetEnv().IsCloud && source.Type == StorageTypeLocal &&
+		user.Role != users_enums.UserRoleAdmin {
+		return nil, ErrLocalStorageNotAllowedInCloudMode
+	}
+
+	if source.Type == StorageTypeRclone && user.Role != users_enums.UserRoleAdmin {
+		return nil, ErrRcloneStorageRequiresAdmin
+	}
+
+	if source.IsSystem && user.Role != users_enums.UserRoleAdmin {
+		return nil, ErrInsufficientPermissionsToManageStorage
+	}
+
+	clone := source.Clone()
+
+	if _, err := s.storageRepository.Save(clone); err != nil {
+		return nil, err
+	}
+
+	s.auditLogService.WriteAuditLog(
+		fmt.Sprintf("Storage cloned: %s from %s", clone.Name, source.Name),
+		&user.ID,
+		&source.WorkspaceID,
+	)
+
+	clone.HideSensitiveData()
+
+	return clone, nil
+}
+
 func (s *StorageService) DeleteStorage(
 	user *users_models.User,
 	storageID uuid.UUID,

@@ -23,6 +23,7 @@ func (c *StorageController) RegisterRoutes(router *gin.RouterGroup) {
 	router.DELETE("/storages/:id", c.DeleteStorage)
 	router.POST("/storages/:id/test", c.TestStorageConnection)
 	router.POST("/storages/:id/transfer", c.TransferStorageToWorkspace)
+	router.POST("/storages/:id/clone", c.CloneStorage)
 	router.POST("/storages/direct-test", c.TestStorageConnectionDirect)
 }
 
@@ -69,6 +70,46 @@ func (c *StorageController) SaveStorage(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, request)
+}
+
+// CloneStorage
+// @Summary Clone a storage
+// @Description Duplicate an existing storage, including its credentials, within the same workspace
+// @Tags storages
+// @Produce json
+// @Param Authorization header string true "JWT token"
+// @Param id path string true "Storage ID"
+// @Success 200 {object} Storage
+// @Failure 400
+// @Failure 401
+// @Failure 403
+// @Router /storages/{id}/clone [post]
+func (c *StorageController) CloneStorage(ctx *gin.Context) {
+	user, ok := users_middleware.GetUserFromContext(ctx)
+	if !ok {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	id, err := uuid.Parse(ctx.Param("id"))
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid storage ID"})
+		return
+	}
+
+	clone, err := c.storageService.CloneStorage(user, id)
+	if err != nil {
+		if errors.Is(err, ErrInsufficientPermissionsToManageStorage) ||
+			errors.Is(err, ErrLocalStorageNotAllowedInCloudMode) ||
+			errors.Is(err, ErrRcloneStorageRequiresAdmin) {
+			ctx.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+			return
+		}
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, clone)
 }
 
 // GetStorage

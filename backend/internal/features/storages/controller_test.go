@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	audit_logs "databasus-backend/internal/features/audit_logs"
 	azure_blob_storage "databasus-backend/internal/features/storages/models/azure_blob"
@@ -2250,4 +2251,109 @@ func deleteStorage(
 		"Bearer "+token,
 		http.StatusOK,
 	)
+}
+
+func Test_CloneStorage_WhenUserCanManage_CloneCreatedWithCopyName(t *testing.T) {
+	owner := users_testing.CreateTestUser(users_enums.UserRoleMember)
+	router := createRouter()
+	workspace := workspaces_testing.CreateTestWorkspace("Test Workspace", owner, router)
+	storage := createNewStorage(workspace.ID)
+
+	var savedStorage Storage
+	test_utils.MakePostRequestAndUnmarshal(
+		t, router, "/api/v1/storages", "Bearer "+owner.Token,
+		*storage, http.StatusOK, &savedStorage,
+	)
+
+	var clonedStorage Storage
+	test_utils.MakePostRequestAndUnmarshal(
+		t, router,
+		fmt.Sprintf("/api/v1/storages/%s/clone", savedStorage.ID.String()),
+		"Bearer "+owner.Token, nil, http.StatusOK, &clonedStorage,
+	)
+
+	assert.NotEqual(t, savedStorage.ID, clonedStorage.ID)
+	assert.NotEmpty(t, clonedStorage.ID)
+	assert.Equal(t, savedStorage.Name+" (copy)", clonedStorage.Name)
+	assert.Equal(t, workspace.ID, clonedStorage.WorkspaceID)
+	assert.Equal(t, StorageTypeLocal, clonedStorage.Type)
+
+	deleteStorage(t, router, clonedStorage.ID, owner.Token)
+	deleteStorage(t, router, savedStorage.ID, owner.Token)
+	workspaces_testing.RemoveTestWorkspace(workspace, router)
+}
+
+func Test_CloneStorage_WhenUserCannotManage_ReturnsForbidden(t *testing.T) {
+	owner := users_testing.CreateTestUser(users_enums.UserRoleMember)
+	outsider := users_testing.CreateTestUser(users_enums.UserRoleMember)
+	router := createRouter()
+	workspace := workspaces_testing.CreateTestWorkspace("Test Workspace", owner, router)
+	storage := createNewStorage(workspace.ID)
+
+	var savedStorage Storage
+	test_utils.MakePostRequestAndUnmarshal(
+		t, router, "/api/v1/storages", "Bearer "+owner.Token,
+		*storage, http.StatusOK, &savedStorage,
+	)
+
+	response := test_utils.MakePostRequest(
+		t, router,
+		fmt.Sprintf("/api/v1/storages/%s/clone", savedStorage.ID.String()),
+		"Bearer "+outsider.Token, nil, http.StatusForbidden,
+	)
+	assert.Contains(t, string(response.Body), "error")
+
+	deleteStorage(t, router, savedStorage.ID, owner.Token)
+	workspaces_testing.RemoveTestWorkspace(workspace, router)
+}
+
+func Test_CloneStorage_S3SecretsCopied_CloneTestConnectionSucceeds(t *testing.T) {
+	validateEnvVariables(t)
+	s3Container, err := setupS3Container(t.Context())
+	require.NoError(t, err, "Failed to setup S3 container")
+
+	owner := users_testing.CreateTestUser(users_enums.UserRoleMember)
+	router := createRouter()
+	workspace := workspaces_testing.CreateTestWorkspace("Test Workspace", owner, router)
+
+	storage := &Storage{
+		WorkspaceID: workspace.ID,
+		Type:        StorageTypeS3,
+		Name:        "S3 source " + uuid.New().String(),
+		S3Storage: &s3_storage.S3Storage{
+			S3Bucket:    s3Container.bucketName,
+			S3Region:    s3Container.region,
+			S3AccessKey: s3Container.accessKey,
+			S3SecretKey: s3Container.secretKey,
+			S3Endpoint:  "http://" + s3Container.endpoint,
+		},
+	}
+
+	var savedStorage Storage
+	test_utils.MakePostRequestAndUnmarshal(
+		t, router, "/api/v1/storages", "Bearer "+owner.Token,
+		*storage, http.StatusOK, &savedStorage,
+	)
+
+	var clonedStorage Storage
+	test_utils.MakePostRequestAndUnmarshal(
+		t, router,
+		fmt.Sprintf("/api/v1/storages/%s/clone", savedStorage.ID.String()),
+		"Bearer "+owner.Token, nil, http.StatusOK, &clonedStorage,
+	)
+
+	// Empty access/secret keys in the response prove they were hidden, not lost.
+	assert.Empty(t, clonedStorage.S3Storage.S3AccessKey)
+
+	// Testing the clone's connection proves the encrypted secrets were copied.
+	response := test_utils.MakePostRequest(
+		t, router,
+		fmt.Sprintf("/api/v1/storages/%s/test", clonedStorage.ID.String()),
+		"Bearer "+owner.Token, nil, http.StatusOK,
+	)
+	assert.Contains(t, string(response.Body), "successful")
+
+	deleteStorage(t, router, clonedStorage.ID, owner.Token)
+	deleteStorage(t, router, savedStorage.ID, owner.Token)
+	workspaces_testing.RemoveTestWorkspace(workspace, router)
 }
