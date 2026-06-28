@@ -71,7 +71,7 @@ export const apiHelper = {
       .addHeader('Content-Type', 'application/json')
       .addHeader('Access-Control-Allow-Methods', 'POST')
       .addHeader('Accept', 'application/json')
-      .addHeader('Authorization', accessTokenHelper.getAccessToken());
+      .addHeader('X-Databasus-Token', accessTokenHelper.getAccessToken());
 
     const response = await makeRequest(
       url,
@@ -92,7 +92,7 @@ export const apiHelper = {
       .addHeader('Content-Type', 'application/json')
       .addHeader('Access-Control-Allow-Methods', 'POST')
       .addHeader('Accept', 'application/json')
-      .addHeader('Authorization', accessTokenHelper.getAccessToken());
+      .addHeader('X-Databasus-Token', accessTokenHelper.getAccessToken());
 
     const response = await makeRequest(
       url,
@@ -112,7 +112,7 @@ export const apiHelper = {
       .setMethod('POST')
       .addHeader('Content-Type', 'application/json')
       .addHeader('Access-Control-Allow-Methods', 'POST')
-      .addHeader('Authorization', accessTokenHelper.getAccessToken());
+      .addHeader('X-Databasus-Token', accessTokenHelper.getAccessToken());
 
     const response = await makeRequest(
       url,
@@ -132,7 +132,7 @@ export const apiHelper = {
       .addHeader('Content-Type', 'application/json')
       .addHeader('Access-Control-Allow-Methods', 'GET')
       .addHeader('Accept', 'application/json')
-      .addHeader('Authorization', accessTokenHelper.getAccessToken());
+      .addHeader('X-Databasus-Token', accessTokenHelper.getAccessToken());
 
     const response = await makeRequest(
       url,
@@ -152,7 +152,7 @@ export const apiHelper = {
       .addHeader('Content-Type', 'application/json')
       .addHeader('Access-Control-Allow-Methods', 'GET')
       .addHeader('Accept', 'application/json')
-      .addHeader('Authorization', accessTokenHelper.getAccessToken());
+      .addHeader('X-Databasus-Token', accessTokenHelper.getAccessToken());
 
     const response = await makeRequest(
       url,
@@ -170,7 +170,7 @@ export const apiHelper = {
   ): Promise<Blob> => {
     const optionsWrapper = (requestOptions ?? new RequestOptions())
       .addHeader('Access-Control-Allow-Methods', 'GET')
-      .addHeader('Authorization', accessTokenHelper.getAccessToken());
+      .addHeader('X-Databasus-Token', accessTokenHelper.getAccessToken());
 
     const response = await makeRequest(
       url,
@@ -188,7 +188,7 @@ export const apiHelper = {
   ): Promise<{ blob: Blob; headers: Headers }> => {
     const optionsWrapper = (requestOptions ?? new RequestOptions())
       .addHeader('Access-Control-Allow-Methods', 'GET')
-      .addHeader('Authorization', accessTokenHelper.getAccessToken());
+      .addHeader('X-Databasus-Token', accessTokenHelper.getAccessToken());
 
     const response = await makeRequest(
       url,
@@ -210,7 +210,7 @@ export const apiHelper = {
       .addHeader('Content-Type', 'application/json')
       .addHeader('Access-Control-Allow-Methods', 'PUT')
       .addHeader('Accept', 'application/json')
-      .addHeader('Authorization', accessTokenHelper.getAccessToken());
+      .addHeader('X-Databasus-Token', accessTokenHelper.getAccessToken());
 
     const response = await makeRequest(
       url,
@@ -230,7 +230,7 @@ export const apiHelper = {
       .setMethod('DELETE')
       .addHeader('Access-Control-Allow-Methods', 'DELETE')
       .addHeader('Accept', 'application/json')
-      .addHeader('Authorization', accessTokenHelper.getAccessToken());
+      .addHeader('X-Databasus-Token', accessTokenHelper.getAccessToken());
 
     const response = await makeRequest(
       url,
@@ -255,7 +255,7 @@ export const apiHelper = {
       .setMethod('DELETE')
       .addHeader('Access-Control-Allow-Methods', 'DELETE')
       .addHeader('Accept', 'application/json')
-      .addHeader('Authorization', accessTokenHelper.getAccessToken());
+      .addHeader('X-Databasus-Token', accessTokenHelper.getAccessToken());
 
     const response = await makeRequest(
       url,

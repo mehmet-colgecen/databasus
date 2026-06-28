@@ -13,7 +13,13 @@ import (
 // AuthMiddleware validates JWT token and adds user to context
 func AuthMiddleware(userService *users_services.UserService) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		token := ctx.GetHeader("Authorization")
+		// Prefer the proxy-safe custom header: Rancher's service-proxy rejects
+		// requests bearing an Authorization header it can't validate. Fall back to
+		// Authorization for direct/standalone clients and agents/CLI.
+		token := ctx.GetHeader("X-Databasus-Token")
+		if token == "" {
+			token = ctx.GetHeader("Authorization")
+		}
 		if token == "" {
 			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization token required"})
 			ctx.Abort()
