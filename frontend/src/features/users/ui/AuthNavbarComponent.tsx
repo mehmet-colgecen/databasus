@@ -1,6 +1,7 @@
 import { Tooltip } from 'antd';
 
 import { IS_CLOUD, IS_DISABLE_CLOUD_NOTICE } from '../../../constants';
+import { asset } from '../../../shared/basePath';
 import { useTemporaryVisibility } from '../../../shared/hooks';
 import { StarButtonComponent } from '../../../shared/ui/StarButtonComponent';
 import { ThemeToggleComponent } from '../../../shared/ui/ThemeToggleComponent';
@@ -12,7 +13,7 @@ export function AuthNavbarComponent() {
     <div className="flex h-[65px] items-center justify-center px-5 pt-5 sm:justify-start">
       <div className="flex items-center gap-3 hover:opacity-80">
         <a href="https://databasus.com" target="_blank" rel="noreferrer">
-          <img className="h-[45px] w-[45px] p-1" src="/logo.svg" />
+          <img className="h-[45px] w-[45px] p-1" src={asset('/logo.svg')} />
         </a>
 
         <div className="text-xl font-bold">

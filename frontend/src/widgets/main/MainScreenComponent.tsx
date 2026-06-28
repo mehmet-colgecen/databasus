@@ -30,6 +30,7 @@ import {
 } from '../../shared/hooks';
 import { StarButtonComponent } from '../../shared/ui/StarButtonComponent';
 import { ThemeToggleComponent } from '../../shared/ui/ThemeToggleComponent';
+import { asset } from '../../shared/basePath';
 import { SidebarComponent } from './SidebarComponent';
 import { WorkspaceSelectionComponent } from './WorkspaceSelectionComponent';
 
@@ -129,8 +130,8 @@ export const MainScreenComponent = () => {
     {
       text: 'Databases',
       name: 'databases',
-      icon: '/icons/menu/database-gray.svg',
-      selectedIcon: '/icons/menu/database-white.svg',
+      icon: asset('/icons/menu/database-gray.svg'),
+      selectedIcon: asset('/icons/menu/database-white.svg'),
       onClick: () => setSelectedTab('databases'),
       isAdminOnly: false,
       marginTop: '0px',
@@ -139,8 +140,8 @@ export const MainScreenComponent = () => {
     {
       text: 'Storages',
       name: 'storages',
-      icon: '/icons/menu/storage-gray.svg',
-      selectedIcon: '/icons/menu/storage-white.svg',
+      icon: asset('/icons/menu/storage-gray.svg'),
+      selectedIcon: asset('/icons/menu/storage-white.svg'),
       onClick: () => setSelectedTab('storages'),
       isAdminOnly: false,
       marginTop: '0px',
@@ -149,8 +150,8 @@ export const MainScreenComponent = () => {
     {
       text: 'Notifiers',
       name: 'notifiers',
-      icon: '/icons/menu/notifier-gray.svg',
-      selectedIcon: '/icons/menu/notifier-white.svg',
+      icon: asset('/icons/menu/notifier-gray.svg'),
+      selectedIcon: asset('/icons/menu/notifier-white.svg'),
       onClick: () => setSelectedTab('notifiers'),
       isAdminOnly: false,
       marginTop: '0px',
@@ -159,8 +160,8 @@ export const MainScreenComponent = () => {
     {
       text: 'Settings',
       name: 'settings',
-      icon: '/icons/menu/workspace-settings-gray.svg',
-      selectedIcon: '/icons/menu/workspace-settings-white.svg',
+      icon: asset('/icons/menu/workspace-settings-gray.svg'),
+      selectedIcon: asset('/icons/menu/workspace-settings-white.svg'),
       onClick: () => setSelectedTab('settings'),
       isAdminOnly: false,
       marginTop: '0px',
@@ -169,8 +170,8 @@ export const MainScreenComponent = () => {
     {
       text: 'Profile',
       name: 'profile',
-      icon: '/icons/menu/profile-gray.svg',
-      selectedIcon: '/icons/menu/profile-white.svg',
+      icon: asset('/icons/menu/profile-gray.svg'),
+      selectedIcon: asset('/icons/menu/profile-white.svg'),
       onClick: () => setSelectedTab('profile'),
       isAdminOnly: false,
       marginTop: '25px',
@@ -179,8 +180,8 @@ export const MainScreenComponent = () => {
     {
       text: 'Databasus settings',
       name: 'databasus-settings',
-      icon: '/icons/menu/global-settings-gray.svg',
-      selectedIcon: '/icons/menu/global-settings-white.svg',
+      icon: asset('/icons/menu/global-settings-gray.svg'),
+      selectedIcon: asset('/icons/menu/global-settings-white.svg'),
       onClick: () => setSelectedTab('databasus-settings'),
       isAdminOnly: true,
       marginTop: '0px',
@@ -189,8 +190,8 @@ export const MainScreenComponent = () => {
     {
       text: 'Users',
       name: 'users',
-      icon: '/icons/menu/user-card-gray.svg',
-      selectedIcon: '/icons/menu/user-card-white.svg',
+      icon: asset('/icons/menu/user-card-gray.svg'),
+      selectedIcon: asset('/icons/menu/user-card-white.svg'),
       onClick: () => setSelectedTab('users'),
       isAdminOnly: true,
       marginTop: '0px',
@@ -203,7 +204,7 @@ export const MainScreenComponent = () => {
       <div className="mb-2 flex h-[50px] items-center rounded bg-white px-2 py-2 shadow md:mb-3 md:h-[60px] md:p-3 dark:bg-gray-800">
         <div className="flex items-center gap-2 hover:opacity-80 md:gap-3">
           <a href="https://databasus.com" target="_blank" rel="noreferrer">
-            <img className="h-[30px] w-[30px] p-1 md:h-[40px] md:w-[40px]" src="/logo.svg" />
+            <img className="h-[30px] w-[30px] p-1 md:h-[40px] md:w-[40px]" src={asset('/logo.svg')} />
           </a>
         </div>
 

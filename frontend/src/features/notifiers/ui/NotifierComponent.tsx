@@ -11,6 +11,7 @@ import { useEffect } from 'react';
 import { databaseApi } from '../../../entity/databases';
 import { notifierApi } from '../../../entity/notifiers';
 import type { Notifier } from '../../../entity/notifiers';
+import { asset } from '../../../shared/basePath';
 import { ToastHelper } from '../../../shared/toast';
 import { ConfirmationComponent } from '../../../shared/ui';
 import { NotifierTransferDialogComponent } from './NotifierTransferDialogComponent';
@@ -146,7 +147,7 @@ export const NotifierComponent = ({
                 {notifier.name}
                 {isCanManageNotifiers && (
                   <div className="ml-2 cursor-pointer" onClick={() => startEdit('name')}>
-                    <img src="/icons/pen-gray.svg" />
+                    <img src={asset('/icons/pen-gray.svg')} />
                   </div>
                 )}
               </div>
@@ -225,7 +226,7 @@ export const NotifierComponent = ({
 
               {!isEditSettings && isCanManageNotifiers ? (
                 <div className="ml-2 h-4 w-4 cursor-pointer" onClick={() => startEdit('settings')}>
-                  <img src="/icons/pen-gray.svg" />
+                  <img src={asset('/icons/pen-gray.svg')} />
                 </div>
               ) : (
                 <div />

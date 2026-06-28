@@ -2,6 +2,7 @@ import { Button, Input } from 'antd';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { type WorkspaceResponse } from '../../entity/workspaces';
+import { asset } from '../../shared/basePath';
 import { useIsMobile } from '../../shared/hooks';
 
 interface Props {
@@ -79,7 +80,7 @@ export const WorkspaceSelectionComponent = ({
               {selectedWorkspace?.name || 'Select a workspace'}
             </div>
             <img
-              src="/icons/menu/arrow-down-gray.svg"
+              src={asset('/icons/menu/arrow-down-gray.svg')}
               alt="arrow-down"
               className={`ml-1 flex-shrink-0 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}
               width={isMobile ? 14 : 15}

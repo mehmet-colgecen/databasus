@@ -1,19 +1,21 @@
+import { asset } from '../../../shared/basePath';
+
 import { NotifierType } from './NotifierType';
 
 export const getNotifierLogoFromType = (type: NotifierType) => {
   switch (type) {
     case NotifierType.EMAIL:
-      return '/icons/notifiers/email.svg';
+      return asset('/icons/notifiers/email.svg');
     case NotifierType.TELEGRAM:
-      return '/icons/notifiers/telegram.svg';
+      return asset('/icons/notifiers/telegram.svg');
     case NotifierType.WEBHOOK:
-      return '/icons/notifiers/webhook.svg';
+      return asset('/icons/notifiers/webhook.svg');
     case NotifierType.SLACK:
-      return '/icons/notifiers/slack.svg';
+      return asset('/icons/notifiers/slack.svg');
     case NotifierType.DISCORD:
-      return '/icons/notifiers/discord.svg';
+      return asset('/icons/notifiers/discord.svg');
     case NotifierType.TEAMS:
-      return '/icons/notifiers/teams.svg';
+      return asset('/icons/notifiers/teams.svg');
     default:
       return '';
   }

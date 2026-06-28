@@ -13,6 +13,7 @@ import { backupConfigApi } from '../../../entity/backups';
 import { storageApi } from '../../../entity/storages';
 import type { Storage } from '../../../entity/storages';
 import { type UserProfile, UserRole } from '../../../entity/users';
+import { asset } from '../../../shared/basePath';
 import { ToastHelper } from '../../../shared/toast';
 import { ConfirmationComponent } from '../../../shared/ui';
 import { StorageTransferDialogComponent } from './StorageTransferDialogComponent';
@@ -173,7 +174,7 @@ export const StorageComponent = ({
                   {storage.name}
                   {(!storage.isSystem || user.role === UserRole.ADMIN) && isCanManageStorages && (
                     <div className="ml-2 cursor-pointer" onClick={() => startEdit('name')}>
-                      <img src="/icons/pen-gray.svg" />
+                      <img src={asset('/icons/pen-gray.svg')} />
                     </div>
                   )}
                 </div>
@@ -261,7 +262,7 @@ export const StorageComponent = ({
                     className="ml-2 h-4 w-4 cursor-pointer"
                     onClick={() => startEdit('settings')}
                   >
-                    <img src="/icons/pen-gray.svg" />
+                    <img src={asset('/icons/pen-gray.svg')} />
                   </div>
                 ) : (
                   <div />

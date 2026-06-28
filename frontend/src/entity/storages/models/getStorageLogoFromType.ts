@@ -1,23 +1,25 @@
+import { asset } from '../../../shared/basePath';
+
 import { StorageType } from './StorageType';
 
 export const getStorageLogoFromType = (type: StorageType) => {
   switch (type) {
     case StorageType.LOCAL:
-      return '/icons/storages/local.svg';
+      return asset('/icons/storages/local.svg');
     case StorageType.S3:
-      return '/icons/storages/s3.svg';
+      return asset('/icons/storages/s3.svg');
     case StorageType.GOOGLE_DRIVE:
-      return '/icons/storages/google-drive.svg';
+      return asset('/icons/storages/google-drive.svg');
     case StorageType.NAS:
-      return '/icons/storages/nas.svg';
+      return asset('/icons/storages/nas.svg');
     case StorageType.AZURE_BLOB:
-      return '/icons/storages/azure.svg';
+      return asset('/icons/storages/azure.svg');
     case StorageType.FTP:
-      return '/icons/storages/ftp.svg';
+      return asset('/icons/storages/ftp.svg');
     case StorageType.SFTP:
-      return '/icons/storages/sftp.svg';
+      return asset('/icons/storages/sftp.svg');
     case StorageType.RCLONE:
-      return '/icons/storages/rclone.svg';
+      return asset('/icons/storages/rclone.svg');
     default:
       return '';
   }

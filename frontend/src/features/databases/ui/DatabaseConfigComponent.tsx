@@ -16,6 +16,7 @@ import {
   databaseApi,
 } from '../../../entity/databases';
 import type { UserProfile } from '../../../entity/users';
+import { asset } from '../../../shared/basePath';
 import { ToastHelper } from '../../../shared/toast';
 import { ConfirmationComponent } from '../../../shared/ui';
 import { EditBackupConfigComponent, ShowBackupConfigComponent } from '../../backups';
@@ -211,7 +212,7 @@ export const DatabaseConfigComponent = ({
 
           {isCanManageDBs && (
             <div className="ml-2 cursor-pointer" onClick={() => startEdit('name')}>
-              <img src="/icons/pen-gray.svg" />
+              <img src={asset('/icons/pen-gray.svg')} />
             </div>
           )}
         </div>
@@ -290,7 +291,7 @@ export const DatabaseConfigComponent = ({
 
             {!isEditDatabaseSpecificDataSettings && isCanManageDBs ? (
               <div className="ml-2 h-4 w-4 cursor-pointer" onClick={() => startEdit('database')}>
-                <img src="/icons/pen-gray.svg" />
+                <img src={asset('/icons/pen-gray.svg')} />
               </div>
             ) : (
               <div />
@@ -326,7 +327,7 @@ export const DatabaseConfigComponent = ({
                 className="ml-2 h-4 w-4 cursor-pointer"
                 onClick={() => startEdit('backup-config')}
               >
-                <img src="/icons/pen-gray.svg" />
+                <img src={asset('/icons/pen-gray.svg')} />
               </div>
             ) : (
               <div />
@@ -368,7 +369,7 @@ export const DatabaseConfigComponent = ({
                   className="ml-2 h-4 w-4 cursor-pointer"
                   onClick={() => startEdit('healthcheck')}
                 >
-                  <img src="/icons/pen-gray.svg" />
+                  <img src={asset('/icons/pen-gray.svg')} />
                 </div>
               ) : (
                 <div />
@@ -401,7 +402,7 @@ export const DatabaseConfigComponent = ({
                   className="ml-2 h-4 w-4 cursor-pointer"
                   onClick={() => startEdit('verification-config')}
                 >
-                  <img src="/icons/pen-gray.svg" />
+                  <img src={asset('/icons/pen-gray.svg')} />
                 </div>
               ) : (
                 <div />
@@ -430,7 +431,7 @@ export const DatabaseConfigComponent = ({
 
             {!isEditNotifiersSettings && isCanManageDBs ? (
               <div className="ml-2 h-4 w-4 cursor-pointer" onClick={() => startEdit('notifiers')}>
-                <img src="/icons/pen-gray.svg" />
+                <img src={asset('/icons/pen-gray.svg')} />
               </div>
             ) : (
               <div />
