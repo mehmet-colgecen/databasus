@@ -1,3 +1,5 @@
+import { getBasePath } from './shared/basePath';
+
 interface RuntimeConfig {
   IS_CLOUD?: string;
   IS_DISABLE_CLOUD_NOTICE?: string;
@@ -26,7 +28,7 @@ export function getApplicationServer() {
   if (isDevelopment) {
     return `${url.protocol}//${url.hostname}:4005`;
   } else {
-    return `${url.protocol}//${url.hostname}:${url.port || (url.protocol === 'https:' ? '443' : '80')}`;
+    return `${url.protocol}//${url.hostname}:${url.port || (url.protocol === 'https:' ? '443' : '80')}${getBasePath()}`;
   }
 }
 

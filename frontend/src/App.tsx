@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { BrowserRouter, Route } from 'react-router';
 import { Routes } from 'react-router';
 
+import { getBasePath } from './shared/basePath';
 import { useVersionCheck } from './shared/hooks/useVersionCheck';
 
 import { IS_CLOUD, IS_PADDLE_SANDBOX, PADDLE_CLIENT_TOKEN } from './constants';
@@ -50,7 +51,7 @@ function AppContent() {
       }}
     >
       <AntdApp>
-        <BrowserRouter>
+        <BrowserRouter basename={getBasePath()}>
           <Routes>
             <Route path="/auth/callback" element={<OAuthCallbackPage />} />
             <Route path="/storages/google-oauth" element={<OauthStorageComponent />} />
